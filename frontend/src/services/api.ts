@@ -201,4 +201,12 @@ export const api = {
     });
     return res.data;
   },
+
+  // Live India Food Safety News
+  async getFoodNews(forceRefresh = false): Promise<any> {
+    const res = await apiClient.get('/news', {
+      params: forceRefresh ? { force_refresh: true } : {},
+    });
+    return res.data;
+  },
 };
