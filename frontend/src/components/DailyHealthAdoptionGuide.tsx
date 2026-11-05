@@ -16,8 +16,11 @@ import {
   Info,
   Check,
   Zap,
-  Leaf
+  Leaf,
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
+import { UniversalModal } from './UniversalModal';
 import { sounds } from '../utils/soundEffects';
 
 interface SwapItem {
@@ -36,6 +39,7 @@ interface SwapItem {
 }
 
 export const DailyHealthAdoptionGuide: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'plate' | 'limits' | 'swaps' | 'rules'>('plate');
   const [activeNutrient, setActiveNutrient] = useState<number>(0);
 
@@ -165,425 +169,424 @@ export const DailyHealthAdoptionGuide: React.FC = () => {
     }
   ];
 
+  const handleOpenModal = (tab?: 'plate' | 'limits' | 'swaps' | 'rules') => {
+    sounds.playClick();
+    if (tab) setActiveTab(tab);
+    setIsModalOpen(true);
+  };
+
   return (
-    <section className="max-w-6xl mx-auto px-4 py-8 relative z-10">
-      {/* Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-        <div className="space-y-2">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full mac-secondary-btn text-emerald-800 text-xs font-bold shadow-xs">
-            <Apple className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="tracking-wide">ICMR-NIN 2024 STANDARDS · DAILY NUTRITION BLUEPRINT</span>
+    <section className="max-w-6xl mx-auto px-4 py-4 relative z-10">
+      {/* COMPACT & ATTRACTIVE TEASER CARD ON LANDING PAGE */}
+      <div className="glass-card hover:glass-card-glow rounded-[28px] p-5 sm:p-6 border border-white/90 shadow-md relative overflow-hidden transition-all duration-300">
+        {/* Subtle Specular Glow */}
+        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+          {/* Left Title & Summary */}
+          <div className="space-y-1.5 max-w-xl">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full mac-secondary-btn text-emerald-800 text-[10px] font-black uppercase tracking-wider shadow-xs">
+              <Apple className="w-3.5 h-3.5 text-emerald-600" />
+              <span>ICMR-NIN 2024 STANDARDS · HEALTH INTAKE BLUEPRINT</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              How to Adopt Good Health & Best Food Intake
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              Scientifically balanced nutrition standards by the National Institute of Nutrition (ICMR-NIN).
+              Learn the 50% plate ratio, safe daily sugar & sodium thresholds, and clean supermarket swaps.
+            </p>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            How to Adopt Good Health: <br className="hidden sm:inline" />
-            <span className="text-emerald-600">Daily Food Requirements & Pure Intake Guide.</span>
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-            Scientifically balanced nutrition standards by the National Institute of Nutrition (ICMR-NIN).
-            Learn how to fulfill your daily micro and macronutrient requirements while dodging ultra-processed food traps.
-          </p>
-        </div>
+          {/* Center/Right 4 Quick Compact Pills & View More Button */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-slate-700">
+              <div
+                onClick={() => handleOpenModal('plate')}
+                className="p-2.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center space-x-2 cursor-pointer hover:bg-emerald-100/70 transition-colors shadow-xs"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>50% Veggies & Greens</span>
+              </div>
+              <div
+                onClick={() => handleOpenModal('limits')}
+                className="p-2.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex items-center space-x-2 cursor-pointer hover:bg-amber-100/70 transition-colors shadow-xs"
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Sugar &lt; 25g/day</span>
+              </div>
+              <div
+                onClick={() => handleOpenModal('limits')}
+                className="p-2.5 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex items-center space-x-2 cursor-pointer hover:bg-blue-100/70 transition-colors shadow-xs"
+              >
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                <span>Sodium &lt; 2000mg</span>
+              </div>
+              <div
+                onClick={() => handleOpenModal('swaps')}
+                className="p-2.5 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex items-center space-x-2 cursor-pointer hover:bg-purple-100/70 transition-colors shadow-xs"
+              >
+                <span className="w-2 h-2 rounded-full bg-purple-500" />
+                <span>Clean Swaps</span>
+              </div>
+            </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-1.5 self-start sm:self-end">
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              setActiveTab('plate');
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeTab === 'plate'
-                ? 'apple-pill-btn text-white'
-                : 'mac-secondary-btn text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Daily Plate Method
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              setActiveTab('limits');
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeTab === 'limits'
-                ? 'apple-pill-btn text-white'
-                : 'mac-secondary-btn text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Safe Intake Ceilings
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              setActiveTab('swaps');
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeTab === 'swaps'
-                ? 'apple-pill-btn text-white'
-                : 'mac-secondary-btn text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Smart Food Swaps
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              setActiveTab('rules');
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeTab === 'rules'
-                ? 'apple-pill-btn text-white'
-                : 'mac-secondary-btn text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Label Rules
-          </button>
+            {/* Prominent "View More / See Details" Action Button */}
+            <button
+              type="button"
+              onClick={() => handleOpenModal('plate')}
+              className="py-3 px-5 rounded-2xl apple-pill-btn text-white text-xs font-bold flex items-center justify-center space-x-2 shadow-md shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>View Full Health Guide (See Details)</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* TAB 1: DAILY PLATE METHOD */}
-      {activeTab === 'plate' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Visual Plate Ratio Bar */}
-          <div className="glass-card rounded-[32px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-md">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
-                  National Institute of Nutrition (ICMR) Formula
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                  The Ideal "My Plate for the Day"
-                </h3>
-              </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-mono font-bold border border-emerald-200">
-                100% Real Food Ratio
-              </span>
-            </div>
+      {/* COMPREHENSIVE HEALTH ADOPTION GUIDE POP-UP MODAL */}
+      <UniversalModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Daily Health & Food Intake Adoption Guide"
+        subtitle="National Institute of Nutrition (ICMR-NIN 2024) Clinical Guidelines"
+        badge="CLINICAL NUTRITION BLUEPRINT"
+        icon={<Apple className="w-5 h-5 text-emerald-600" />}
+        maxWidth="max-w-4xl"
+      >
+        <div className="space-y-6">
+          {/* Modal Tab Switcher */}
+          <div className="flex flex-wrap gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200">
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setActiveTab('plate');
+              }}
+              className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                activeTab === 'plate'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🥗 Daily Plate Method
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setActiveTab('limits');
+              }}
+              className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                activeTab === 'limits'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              ⚡ Safe Intake Ceilings
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setActiveTab('swaps');
+              }}
+              className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                activeTab === 'swaps'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🔄 Smart Health Swaps
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setActiveTab('rules');
+              }}
+              className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold transition-all text-center ${
+                activeTab === 'rules'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📜 Supermarket Rules
+            </button>
+          </div>
 
-            {/* Visual segmented bar */}
-            <div className="space-y-2">
-              <div className="h-5 sm:h-6 w-full rounded-full overflow-hidden flex shadow-inner border border-slate-200/60 p-0.5 bg-slate-100">
-                <div
-                  className="h-full bg-emerald-500 rounded-l-full flex items-center justify-center text-[10px] sm:text-xs font-black text-white px-2 transition-all hover:opacity-90 cursor-help"
-                  style={{ width: '50%' }}
-                  title="50% Protective Foods (Vegetables & Greens)"
-                >
-                  50% Veggies & Greens
+          {/* TAB 1: DAILY PLATE METHOD */}
+          {activeTab === 'plate' && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="p-5 sm:p-6 rounded-[28px] bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                      National Institute of Nutrition (ICMR) Formula
+                    </span>
+                    <h4 className="text-lg font-black text-slate-900">
+                      The Ideal "My Plate for the Day"
+                    </h4>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-mono font-bold">
+                    100% Real Food Ratio
+                  </span>
                 </div>
-                <div
-                  className="h-full bg-teal-500 flex items-center justify-center text-[10px] sm:text-xs font-black text-white px-2 transition-all hover:opacity-90 cursor-help"
-                  style={{ width: '25%' }}
-                  title="25% Clean Protein"
-                >
-                  25% Protein
-                </div>
-                <div
-                  className="h-full bg-amber-500 rounded-r-full flex items-center justify-center text-[10px] sm:text-xs font-black text-white px-2 transition-all hover:opacity-90 cursor-help"
-                  style={{ width: '25%' }}
-                  title="25% Whole Grains & Millets"
-                >
-                  25% Millets
+
+                {/* Visual segmented bar */}
+                <div className="space-y-2">
+                  <div className="h-6 w-full rounded-full overflow-hidden flex shadow-inner border border-slate-200 p-0.5 bg-white">
+                    <div
+                      className="h-full bg-emerald-500 rounded-l-full flex items-center justify-center text-[10px] font-black text-white px-2"
+                      style={{ width: '50%' }}
+                    >
+                      50% Veg & Fruits
+                    </div>
+                    <div
+                      className="h-full bg-amber-500 flex items-center justify-center text-[10px] font-black text-white px-2"
+                      style={{ width: '25%' }}
+                    >
+                      25% Cereals/Millets
+                    </div>
+                    <div
+                      className="h-full bg-teal-500 flex items-center justify-center text-[10px] font-black text-white px-2"
+                      style={{ width: '15%' }}
+                    >
+                      15% Pulses/Eggs
+                    </div>
+                    <div
+                      className="h-full bg-purple-500 rounded-r-full flex items-center justify-center text-[10px] font-black text-white px-1"
+                      style={{ width: '10%' }}
+                    >
+                      10% Dairy/Nuts
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-white border border-emerald-200">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block mr-1.5" />
+                      <strong className="text-emerald-900 block">50% Veg & Fruits</strong>
+                      <span className="text-[11px] text-slate-500">Min. 400g daily green vegetables & fruits.</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-white border border-amber-200">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block mr-1.5" />
+                      <strong className="text-amber-900 block">25% Millets & Whole Grains</strong>
+                      <span className="text-[11px] text-slate-500">Jowar, Bajra, Ragi, or Single-polished Rice.</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-white border border-teal-200">
+                      <span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block mr-1.5" />
+                      <strong className="text-teal-900 block">15% Pulses & Plant Proteins</strong>
+                      <span className="text-[11px] text-slate-500">Sprouted Moong, Chana, Paneer, or Eggs.</span>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-white border border-purple-200">
+                      <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block mr-1.5" />
+                      <strong className="text-purple-900 block">10% Clean Fats & Nuts</strong>
+                      <span className="text-[11px] text-slate-500">Almonds, Walnuts, Seeds, Cold-pressed Oils.</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-between text-[11px] font-semibold text-slate-500 px-1">
-                <span className="flex items-center space-x-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <span>Protective Foods (400–500g)</span>
-                </span>
-                <span className="flex items-center space-x-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-teal-500" />
-                  <span>Repair & Muscle (55–70g)</span>
-                </span>
-                <span className="flex items-center space-x-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span>Slow Energy (200–250g)</span>
-                </span>
-              </div>
-            </div>
-
-            {/* 4 Interactive Nutrient Focus Tiles */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {nutrientCards.map((n, idx) => {
-                const IconComponent = n.icon;
-                const isSelected = activeNutrient === idx;
-
-                return (
-                  <div
-                    key={n.title}
-                    onClick={() => {
-                      sounds.playClick();
-                      setActiveNutrient(idx);
-                    }}
-                    className={`rounded-[26px] p-5 sm:p-6 transition-all duration-300 cursor-pointer border ${
-                      isSelected
-                        ? 'bg-white/95 border-emerald-500/50 shadow-lg ring-2 ring-emerald-500/20 -translate-y-1'
-                        : 'bg-white/70 hover:bg-white/90 border-slate-200/70 shadow-xs'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center flex-shrink-0 shadow-xs">
-                          <IconComponent className="w-5 h-5" />
+              {/* 4 Nutrient Profiles */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {nutrientCards.map((nc, idx) => {
+                  const Icon = nc.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-slate-900 text-sm">{nc.title}</h5>
+                            <span className="text-[10px] text-slate-400 font-mono">{nc.target}</span>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-base font-black text-slate-900">{n.title}</h4>
-                          <span className="text-[11px] font-mono font-bold text-emerald-700">
-                            {n.target}
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono font-bold">
+                          {nc.dailyAmount}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600">{nc.why}</p>
+
+                      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[11px] space-y-1">
+                        <strong className="text-slate-800 block text-[10px] uppercase font-bold">Top Verified Sources:</strong>
+                        <ul className="list-disc list-inside text-slate-600 space-y-0.5">
+                          {nc.topSources.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SAFE INTAKE CEILINGS */}
+          {activeTab === 'limits' && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-1">
+                <div className="flex items-center space-x-1.5 text-amber-900 font-black text-xs">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span>Critical Maximum Safe Intake Ceilings (ICMR-NIN 2024 / WHO)</span>
+                </div>
+                <p className="text-xs text-slate-600">
+                  Consuming above these daily thresholds directly increases arterial inflammation, visceral fatty liver, and hypertension.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-900">Added Free Sugars</span>
+                    <span className="text-xs font-mono font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                      Max 25g/day (5 tsp)
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Includes sucrose, invert sugar, HFCS, maltodextrin, and fruit juice concentrates. Packaged sweets and soft drinks easily exceed 35g in a single portion.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-900">Sodium (Salt)</span>
+                    <span className="text-xs font-mono font-black text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                      Max 2,000mg/day (5g salt)
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Indian adults consume an average of 8–10g daily. Packaged namkeens, chips, instant noodles, and ketchups hide large amounts of sodium.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-900">Saturated Fat</span>
+                    <span className="text-xs font-mono font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                      &lt; 8–10% total daily energy
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    Keep under 20–22g daily. Avoid products containing hydrogenated palm olein, vanaspati, and re-fried commercial oils.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-slate-900">Industrial Trans Fats</span>
+                    <span className="text-xs font-mono font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      0.0g (Zero Tolerance)
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600">
+                    FSSAI mandates trans-fat must remain under 2% by weight in fats/oils. Avoid bakery shortening and fried street snacks.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: SMART FOOD SWAPS */}
+          {activeTab === 'swaps' && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {smartSwaps.map((swap) => (
+                  <div
+                    key={swap.id}
+                    className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-xs flex flex-col justify-between"
+                  >
+                    <div className="p-3 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between text-xs">
+                      <span className="font-mono font-bold text-slate-600 uppercase">
+                        {swap.category}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                        Verified Clean Swap
+                      </span>
+                    </div>
+
+                    <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                      {/* Unhealthy choice */}
+                      <div className="p-3 rounded-xl bg-rose-50/80 border border-rose-200/80 space-y-1">
+                        <div className="flex items-center space-x-1.5 text-rose-800 font-bold text-xs">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Avoid: {swap.badFood.name}</span>
+                        </div>
+                        <p className="text-[11px] text-rose-900/80 font-mono">{swap.badFood.culprit}</p>
+                        <p className="text-[11px] text-slate-600">{swap.badFood.warning}</p>
+                      </div>
+
+                      <div className="flex justify-center -my-1">
+                        <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      </div>
+
+                      {/* Healthy choice */}
+                      <div className="p-3 rounded-xl bg-emerald-50/90 border border-emerald-200/80 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center space-x-1.5 text-emerald-900 font-bold text-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Adopt: {swap.goodFood.name}</span>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold">
+                            {swap.goodFood.stats}
                           </span>
                         </div>
-                      </div>
-
-                      <span className="text-xs font-mono font-extrabold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700">
-                        {n.dailyAmount}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 leading-relaxed mb-3">
-                      {n.why}
-                    </p>
-
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                        Best Daily Indian Sources:
-                      </span>
-                      <ul className="text-xs text-slate-700 space-y-1 font-medium">
-                        {n.topSources.map((source) => (
-                          <li key={source} className="flex items-center space-x-1.5">
-                            <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                            <span>{source}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="mt-3.5 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-[11px] text-amber-900 flex items-start space-x-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <span>{n.warning}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: SAFE INTAKE CEILINGS (PACKAGED FOOD DANGER LIMITS) */}
-      {activeTab === 'limits' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="glass-card rounded-[32px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-md">
-            <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-600">
-                FSSAI & WHO Daily Ceilings
-              </span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                Critical Daily Thresholds to Prevent Metabolic Disease
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-                Most packaged snacks exceed 50% to 100% of these daily caps in a single serving. Stay below these limits.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {/* Sugar Ceiling */}
-              <div className="rounded-[28px] p-6 bg-gradient-to-b from-rose-50/70 to-white border border-rose-200/80 shadow-xs flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 text-[10px] font-mono font-bold">
-                      MAX CEILING
-                    </span>
-                    <Flame className="w-4 h-4 text-rose-500" />
-                  </div>
-                  <h4 className="text-base font-black text-slate-900">Added Sugar</h4>
-                  <div className="text-3xl font-black text-rose-600 font-mono">
-                    &lt; 25g <span className="text-xs font-sans text-slate-500 font-medium">/ day</span>
-                  </div>
-                  <p className="text-xs text-slate-500">Approximately 5 to 6 teaspoons total from all foods.</p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/90 border border-rose-100 text-xs text-slate-600 space-y-1">
-                  <span className="font-extrabold text-rose-900 block text-[11px]">The Packaged Trap:</span>
-                  <p>Disguised on ingredient lists under 56 aliases: Invert Sugar, Maltodextrin, High-Fructose Syrup, Corn Solids.</p>
-                </div>
-              </div>
-
-              {/* Sodium Ceiling */}
-              <div className="rounded-[28px] p-6 bg-gradient-to-b from-amber-50/70 to-white border border-amber-200/80 shadow-xs flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-mono font-bold">
-                      MAX CEILING
-                    </span>
-                    <HeartPulse className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <h4 className="text-base font-black text-slate-900">Sodium (Salt)</h4>
-                  <div className="text-3xl font-black text-amber-600 font-mono">
-                    &lt; 2,000mg <span className="text-xs font-sans text-slate-500 font-medium">/ day</span>
-                  </div>
-                  <p className="text-xs text-slate-500">Equivalent to 5g (about 1 level teaspoon) of table salt.</p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/90 border border-amber-100 text-xs text-slate-600 space-y-1">
-                  <span className="font-extrabold text-amber-900 block text-[11px]">The Packaged Trap:</span>
-                  <p>1 packet of instant noodles or salted chips packs up to 1,200mg sodium—instantly consuming 60% of your daily limit.</p>
-                </div>
-              </div>
-
-              {/* Saturated & Trans Fat Ceiling */}
-              <div className="rounded-[28px] p-6 bg-gradient-to-b from-emerald-50/70 to-white border border-emerald-200/80 shadow-xs flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold">
-                      TARGET
-                    </span>
-                    <Droplets className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <h4 className="text-base font-black text-slate-900">Cold-Pressed Healthy Fats</h4>
-                  <div className="text-3xl font-black text-emerald-700 font-mono">
-                    25g – 30g <span className="text-xs font-sans text-slate-500 font-medium">/ day</span>
-                  </div>
-                  <p className="text-xs text-slate-500">Prefer cold-pressed mustard, sesame, groundnut, or pure ghee.</p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-white/90 border border-emerald-100 text-xs text-slate-600 space-y-1">
-                  <span className="font-extrabold text-emerald-900 block text-[11px]">Zero Tolerance:</span>
-                  <p>Zero hydrogenated vegetable fat (Vanaspati) and minimal Palm Olein (high in saturated palmitic acid).</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: SMART FOOD SWAPS */}
-      {activeTab === 'swaps' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="glass-card rounded-[32px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-md">
-            <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
-                Actionable Kitchen Conversions
-              </span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                Replace High-Concern Packaged Foods with Clean Nutrition
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-                Small swaps eliminate up to 80% of dietary chemical additives and prevent insulin resistance.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {smartSwaps.map((swap) => (
-                <div
-                  key={swap.id}
-                  className="rounded-[28px] overflow-hidden border border-slate-200/80 bg-white/80 shadow-xs flex flex-col justify-between"
-                >
-                  <div className="p-4 bg-slate-100/70 border-b border-slate-200/60 flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-slate-600 uppercase tracking-wider">
-                      {swap.category}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                      Recommended Swap
-                    </span>
-                  </div>
-
-                  <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                    {/* Unhealthy choice */}
-                    <div className="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/60 space-y-1">
-                      <div className="flex items-center space-x-1.5 text-rose-800 font-black text-xs">
-                        <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-                        <span>Avoid: {swap.badFood.name}</span>
-                      </div>
-                      <p className="text-[11px] text-rose-900/80 font-mono">{swap.badFood.culprit}</p>
-                      <p className="text-[11px] text-slate-600">{swap.badFood.warning}</p>
-                    </div>
-
-                    <div className="flex justify-center -my-1">
-                      <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <p className="text-xs text-slate-700">{swap.goodFood.benefit}</p>
                       </div>
                     </div>
-
-                    {/* Healthy choice */}
-                    <div className="p-3.5 rounded-2xl bg-emerald-50/90 border border-emerald-200/80 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center space-x-1.5 text-emerald-900 font-black text-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Adopt: {swap.goodFood.name}</span>
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-bold">
-                          {swap.goodFood.stats}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-700">{swap.goodFood.benefit}</p>
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* TAB 4: SUPERMARKET RULES */}
+          {activeTab === 'rules' && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs">
+                    01
+                  </div>
+                  <h5 className="font-bold text-slate-900 text-sm">The Top 3 Ingredients Rule</h5>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    By law, food labels must list ingredients in descending order of weight. The first 3 ingredients represent 70% to 85% of what's inside. If sugar, refined palm oil, or maida appears in the top 3, it is not health food.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs">
+                    02
+                  </div>
+                  <h5 className="font-bold text-slate-900 text-sm">The 5-Ingredient Threshold</h5>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Natural, gut-friendly food has short ingredient lists. When an item has more than 5 multi-syllable chemical ingredients (e.g. INS 471, INS 319, INS 150d), it is classified as Nova-4 Ultra Processed Food.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-white border border-slate-200 space-y-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-xs">
+                    03
+                  </div>
+                  <h5 className="font-bold text-slate-900 text-sm">Verify FSSAI License & Dates</h5>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Always verify the 14-digit FSSAI license number on the back of the pack. Check that the "Best Before" and "Date of Manufacture" are clearly printed, not smudged or covered by price stickers.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* TAB 4: SUPERMARKET RULES */}
-      {activeTab === 'rules' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="glass-card rounded-[32px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-md">
-            <div>
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
-                Label Literacy Handbook
-              </span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">
-                The 3 Golden Rules When Buying Packaged Food
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-                Supermarket packaging is designed to fool you. Use these 3 laboratory-tested rules before putting any item in your cart.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-6 rounded-[28px] bg-slate-50/80 border border-slate-200/80 space-y-3">
-                <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
-                  1
-                </div>
-                <h4 className="text-base font-black text-slate-900">The Top 3 Ingredients Rule</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  By law, food labels must list ingredients in descending order of weight. The first 3 ingredients represent 70% to 85% of what's inside. If sugar, refined palm oil, or maida appears in the top 3, it is not health food.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-[28px] bg-slate-50/80 border border-slate-200/80 space-y-3">
-                <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
-                  2
-                </div>
-                <h4 className="text-base font-black text-slate-900">The 5-Ingredient Threshold</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Natural, gut-friendly food has short ingredient lists. When an item has more than 5 multi-syllable chemical ingredients (e.g. INS 471, INS 319, INS 150d), it is classified as Nova-4 Ultra Processed Food.
-                </p>
-              </div>
-
-              <div className="p-6 rounded-[28px] bg-slate-50/80 border border-slate-200/80 space-y-3">
-                <div className="w-9 h-9 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
-                  3
-                </div>
-                <h4 className="text-base font-black text-slate-900">Inspect the FSSAI License & Dates</h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Always verify the 14-digit FSSAI license number on the back of the pack. Check that the "Best Before" and "Date of Manufacture" are clearly printed, not smudged or covered by price stickers.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </UniversalModal>
     </section>
   );
 };
-

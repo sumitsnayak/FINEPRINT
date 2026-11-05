@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Complaint } from '../types';
-import { Search, AlertTriangle, ArrowRight } from 'lucide-react';
+import { UniversalModal } from '../components/UniversalModal';
+import { Search, AlertTriangle, ArrowRight, ShieldAlert, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
+import { sounds } from '../utils/soundEffects';
 
 interface ComplaintHistoryPageProps {
   onNavigate: (tab: string) => void;
@@ -16,6 +18,8 @@ export const ComplaintHistoryPage: React.FC<ComplaintHistoryPageProps> = ({
   const [searchRef, setSearchRef] = useState(initialRef || '');
   const [searchedRecord, setSearchedRecord] = useState<any | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
+  const [activeDossier, setActiveDossier] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchUserComplaints = async () => {
@@ -137,54 +141,50 @@ export const ComplaintHistoryPage: React.FC<ComplaintHistoryPageProps> = ({
         </div>
       )}
 
-      {/* Searched Record Detail Card */}
+      {/* Searched Record Detail Card (Compact Preview + View More Modal) */}
       {searchedRecord && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xl space-y-4 animate-in fade-in text-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-md space-y-4 animate-in fade-in text-slate-900">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <span className="text-[10px] uppercase font-bold text-slate-400">
                 Grievance Reference
               </span>
-              <h3 className="text-2xl font-black font-mono text-emerald-700">
+              <h3 className="text-xl font-black font-mono text-emerald-700">
                 {searchedRecord.reference_number}
               </h3>
             </div>
-            {getStatusBadge(searchedRecord.status)}
+            <div className="flex items-center space-x-3">
+              {getStatusBadge(searchedRecord.status)}
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveDossier(searchedRecord);
+                  setIsDossierModalOpen(true);
+                }}
+                className="py-1.5 px-3 rounded-xl apple-pill-btn text-white text-xs font-bold flex items-center space-x-1 shadow-xs"
+              >
+                <span>View Full Dossier (See Details)</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
-              <span className="text-slate-400 font-bold uppercase block mb-1">Product & Brand</span>
-              <p className="font-bold text-slate-900 text-sm">{searchedRecord.product_name}</p>
+              <span className="text-slate-400 font-bold uppercase block mb-0.5">Product & Brand</span>
+              <p className="font-bold text-slate-900">{searchedRecord.product_name}</p>
               <p className="text-slate-500">{searchedRecord.brand_name || 'Brand not specified'}</p>
             </div>
 
             <div>
-              <span className="text-slate-400 font-bold uppercase block mb-1">Seller & Location</span>
+              <span className="text-slate-400 font-bold uppercase block mb-0.5">Seller & Location</span>
               <p className="font-bold text-slate-900">{searchedRecord.seller_name || 'N/A'}</p>
               <p className="text-slate-500">
                 {searchedRecord.city ? `${searchedRecord.city}, ${searchedRecord.state}` : 'Location unstated'}
               </p>
             </div>
           </div>
-
-          <div>
-            <span className="text-slate-400 font-bold uppercase text-xs block mb-1">
-              Description of Concern
-            </span>
-            <p className="text-xs sm:text-sm text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 leading-relaxed shadow-inner">
-              {searchedRecord.description}
-            </p>
-          </div>
-
-          {searchedRecord.admin_notes && (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-800 space-y-1">
-              <span className="font-bold block uppercase tracking-wider text-[10px] text-emerald-800">
-                Official Reviewer Notes
-              </span>
-              <p>{searchedRecord.admin_notes}</p>
-            </div>
-          )}
         </div>
       )}
 
@@ -198,10 +198,13 @@ export const ComplaintHistoryPage: React.FC<ComplaintHistoryPageProps> = ({
               <div
                 key={c.id}
                 onClick={() => {
+                  sounds.playClick();
                   setSearchRef(c.reference_number);
                   setSearchedRecord(c);
+                  setActiveDossier(c);
+                  setIsDossierModalOpen(true);
                 }}
-                className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-emerald-300 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm hover:shadow"
+                className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 hover:border-emerald-300 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs hover:shadow"
               >
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
@@ -212,12 +215,12 @@ export const ComplaintHistoryPage: React.FC<ComplaintHistoryPageProps> = ({
                   </div>
                   <h3 className="font-bold text-slate-900 text-sm">{c.product_name}</h3>
                   <p className="text-xs text-slate-500">
-                    Category: {c.category.replace(/_/g, ' ')} · Date: {c.incident_date}
+                    Category: {c.category?.replace(/_/g, ' ')} · Date: {c.incident_date}
                   </p>
                 </div>
 
                 <div className="text-xs font-bold text-emerald-700 flex items-center space-x-1">
-                  <span>Track Record</span>
+                  <span>View Details</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -232,6 +235,71 @@ export const ComplaintHistoryPage: React.FC<ComplaintHistoryPageProps> = ({
           </div>
         )}
       </div>
+
+      {/* Complete Grievance Dossier Modal */}
+      {activeDossier && (
+        <UniversalModal
+          isOpen={isDossierModalOpen}
+          onClose={() => setIsDossierModalOpen(false)}
+          title={`Grievance Dossier: ${activeDossier.reference_number}`}
+          subtitle={`Submitted on ${activeDossier.incident_date || 'Recent Date'} · FSS Act 2006 Redressal`}
+          badge="OFFICIAL GRIEVANCE DOCKET"
+          badgeColor="bg-rose-50 text-rose-800 border-rose-200"
+          icon={<ShieldAlert className="w-5 h-5 text-rose-600" />}
+          maxWidth="max-w-3xl"
+        >
+          <div className="space-y-5">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200">
+              <div>
+                <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">Current Case Status</span>
+                <span className="text-sm font-bold text-slate-900">Investigation & Redressal</span>
+              </div>
+              {getStatusBadge(activeDossier.status)}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-slate-400 font-bold uppercase block mb-1">Product Details</span>
+                <p className="font-bold text-slate-900 text-sm">{activeDossier.product_name}</p>
+                <p className="text-slate-500">Brand: {activeDossier.brand_name || 'Unspecified'}</p>
+                <p className="text-slate-500">Category: {activeDossier.category?.replace(/_/g, ' ')}</p>
+                {activeDossier.batch_number && (
+                  <p className="font-mono text-slate-600">Batch: {activeDossier.batch_number}</p>
+                )}
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-1">
+                <span className="text-slate-400 font-bold uppercase block mb-1">Retailer / Seller Info</span>
+                <p className="font-bold text-slate-900 text-sm">{activeDossier.seller_name || 'N/A'}</p>
+                <p className="text-slate-500">
+                  {activeDossier.city ? `${activeDossier.city}, ${activeDossier.state}` : 'Location unstated'}
+                </p>
+                {activeDossier.fssai_license && (
+                  <p className="font-mono text-slate-600">FSSAI Lic: {activeDossier.fssai_license}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <span className="font-bold text-slate-900 text-xs block">Detailed Consumer Concern Statement:</span>
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed bg-white p-3 rounded-xl border border-slate-200">
+                {activeDossier.description}
+              </p>
+            </div>
+
+            {/* Reviewer notes */}
+            {activeDossier.admin_notes && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-slate-800 space-y-1">
+                <span className="font-bold block uppercase tracking-wider text-[10px] text-emerald-800">
+                  Official Reviewer & Investigator Notes
+                </span>
+                <p className="text-slate-700 leading-relaxed">{activeDossier.admin_notes}</p>
+              </div>
+            )}
+          </div>
+        </UniversalModal>
+      )}
     </div>
   );
 };

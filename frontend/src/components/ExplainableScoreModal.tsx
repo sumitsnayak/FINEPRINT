@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
+  ArrowLeft,
   HelpCircle,
   ShieldCheck,
   AlertTriangle,
@@ -58,6 +59,28 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
   const [activeTab, setActiveTab] = useState<'breakdown' | 'evidence' | 'methodology'>('breakdown');
   const [loading, setLoading] = useState<boolean>(false);
   const [explanation, setExplanation] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        sounds.playClick();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !product) return null;
 
@@ -178,6 +201,20 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
       >
         {/* Specular Top Reflection */}
         <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
+
+        {/* Top-Left Back Button */}
+        <button
+          type="button"
+          onClick={() => {
+            sounds.playClick();
+            onClose();
+          }}
+          className="absolute top-4 left-4 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200 border border-slate-200/60 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+          <span>Back</span>
+        </button>
 
         {/* Apple Circle Dismiss Button */}
         <button

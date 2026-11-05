@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useScan } from '../context/ScanContext';
 import { api } from '../services/api';
 import { ScoreBadge } from '../components/ScoreBadge';
-import { Scale, Trash2, Award } from 'lucide-react';
+import { UniversalModal } from '../components/UniversalModal';
+import { NutritionTable } from '../components/NutritionTable';
+import { Scale, Trash2, Award, ChevronRight, Sparkles, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { sounds } from '../utils/soundEffects';
 
 interface ProductComparisonPageProps {
   onNavigate: (tab: string) => void;
@@ -11,6 +14,7 @@ interface ProductComparisonPageProps {
 export const ProductComparisonPage: React.FC<ProductComparisonPageProps> = ({ onNavigate }) => {
   const { compareList, removeFromCompare, clearCompare } = useScan();
   const [comparisonData, setComparisonData] = useState<any | null>(null);
+  const [selectedProductModal, setSelectedProductModal] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchComparison = async () => {
@@ -112,6 +116,17 @@ export const ProductComparisonPage: React.FC<ProductComparisonPageProps> = ({ on
                         {p.brand || 'Brand'}
                       </span>
                       <h3 className="font-bold text-slate-900 text-sm line-clamp-1">{p.name}</h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sounds.playClick();
+                          setSelectedProductModal(p);
+                        }}
+                        className="mt-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 flex items-center space-x-1"
+                      >
+                        <span>See Details</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
                     </div>
                     <button
                       onClick={() => removeFromCompare(p.id)}
@@ -232,9 +247,74 @@ export const ProductComparisonPage: React.FC<ProductComparisonPageProps> = ({ on
                 </td>
               ))}
             </tr>
+
+            {/* Quick Action Row */}
+            <tr className="bg-slate-50/60">
+              <td className="py-4 px-6 font-bold text-slate-900">Complete Dossier</td>
+              {products.map((p: any) => (
+                <td key={p.id} className="py-4 px-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setSelectedProductModal(p);
+                    }}
+                    className="py-1.5 px-3 rounded-xl mac-secondary-btn hover:text-emerald-800 text-xs font-bold flex items-center space-x-1.5 shadow-xs border border-slate-200"
+                  >
+                    <span>View Full Dossier (See Details)</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-emerald-600" />
+                  </button>
+                </td>
+              ))}
+            </tr>
           </tbody>
         </table>
       </div>
+
+      {/* Product Detail Modal from Comparison */}
+      {selectedProductModal && (
+        <UniversalModal
+          isOpen={!!selectedProductModal}
+          onClose={() => setSelectedProductModal(null)}
+          title={selectedProductModal.name}
+          subtitle={`${selectedProductModal.brand || 'Packaged Food'} · Full Product Dossier`}
+          badge="COMPARISON DOSSIER"
+          maxWidth="max-w-3xl"
+        >
+          <div className="space-y-6">
+            {/* Top Score Summary */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center space-x-3.5">
+                <ScoreBadge score={selectedProductModal.overall_score} size="md" />
+                <div>
+                  <h4 className="font-bold text-slate-900 text-base">{selectedProductModal.name}</h4>
+                  <span className="text-xs text-slate-500">Category: {selectedProductModal.category}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-mono">
+                <div>Safety: <strong className="text-slate-900">{selectedProductModal.safety_score?.toFixed(1)}/10</strong></div>
+                <div>Nutrition: <strong className="text-slate-900">{selectedProductModal.nutrition_score?.toFixed(1)}/10</strong></div>
+              </div>
+            </div>
+
+            {/* Nutrition Facts */}
+            {selectedProductModal.nutrition_per_100g && (
+              <div className="space-y-2">
+                <h5 className="font-bold text-slate-900 text-sm">Nutritional Facts (per 100g)</h5>
+                <NutritionTable nutrition100g={selectedProductModal.nutrition_per_100g} />
+              </div>
+            )}
+
+            {/* Ingredients */}
+            {selectedProductModal.ingredients_text && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                <span className="font-bold text-slate-900 text-xs block">Full Ingredients Text:</span>
+                <p className="text-xs text-slate-600 leading-relaxed">{selectedProductModal.ingredients_text}</p>
+              </div>
+            )}
+          </div>
+        </UniversalModal>
+      )}
     </div>
   );
 };

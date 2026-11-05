@@ -15,8 +15,10 @@ import {
   Ban,
   Tag,
   Bug,
-  BadgeAlert
+  BadgeAlert,
+  Scale
 } from 'lucide-react';
+import { UniversalModal } from './UniversalModal';
 import { sounds } from '../utils/soundEffects';
 
 interface ConsumerComplaintZoneProps {
@@ -24,6 +26,7 @@ interface ConsumerComplaintZoneProps {
 }
 
 export const ConsumerComplaintZone: React.FC<ConsumerComplaintZoneProps> = ({ onNavigate }) => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedViolation, setSelectedViolation] = useState<string>('expired');
 
   const violations = [
@@ -32,7 +35,7 @@ export const ConsumerComplaintZone: React.FC<ConsumerComplaintZoneProps> = ({ on
       title: 'Expired Food Being Sold',
       icon: Clock,
       law: 'Section 23, FSS Act 2006',
-      penalty: 'Up to ₹2,00,000 fine & seizure',
+      penalty: 'Up to ₹2,00,000 fine & product seizure',
       desc: 'Retailers or supermarkets selling items past the "Best Before" or "Expiry" date, or wiping out printed dates.',
       evidenceNeeded: 'Clear photo of the expiry date stamp, batch number, and store purchase bill / shelf tag.'
     },
@@ -78,280 +81,243 @@ export const ConsumerComplaintZone: React.FC<ConsumerComplaintZoneProps> = ({ on
 
   const handleStartComplaint = () => {
     sounds.playScanBeep();
+    setIsModalOpen(false);
     onNavigate('report');
   };
 
-  const handleViewHistory = () => {
+  const handleOpenModal = () => {
     sounds.playClick();
-    onNavigate('complaints-history');
+    setIsModalOpen(true);
   };
 
   return (
-    <section className="max-w-6xl mx-auto px-4 py-8 relative z-10">
-      {/* Container with Glass Aesthetics */}
-      <div className="glass-card rounded-[36px] p-6 sm:p-10 border border-white/90 shadow-xl relative overflow-hidden space-y-8">
-        {/* Ambient Top Specular Light */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-rose-500/10 via-emerald-500/5 to-transparent pointer-events-none" />
+    <section className="max-w-6xl mx-auto px-4 py-4 relative z-10">
+      {/* COMPACT & ATTRACTIVE GRIEVANCE BANNER ON LANDING PAGE */}
+      <div className="glass-card hover:glass-card-glow rounded-[28px] p-5 sm:p-6 border border-white/90 shadow-md relative overflow-hidden transition-all duration-300">
+        {/* Specular Sheen */}
+        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
-        {/* Section Header */}
-        <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold shadow-xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+          {/* Left Title & Summary */}
+          <div className="space-y-1.5 max-w-xl">
+            <div className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full mac-secondary-btn text-rose-800 text-[10px] font-black uppercase tracking-wider shadow-xs">
               <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-              <span className="tracking-wide">CONSUMER GRIEVANCE & LEGAL PROTECTIONS</span>
+              <span>CONSUMER GRIEVANCE REDRESSAL · FSS ACT 2006</span>
             </div>
-
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Spotted Something Wrong? <br className="hidden sm:inline" />
-              <span className="text-rose-600">How to File a Food Complaint from FINEPRINT.</span>
-            </h2>
-
-            <p className="text-xs sm:text-sm text-slate-500 max-w-2xl leading-relaxed">
-              If any brand, supermarket, or dark store is selling expired items, deceptive labels, adulterated food, or charging above MRP, you have the legal right to redressal. Report it here with photographic proof.
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Found Something Wrong? How to Complain & Legal Rights
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+              If an Indian food brand or retailer sells expired goods, misleads with fake claims, or lacks an FSSAI license, you have strong legal protections. File a formal grievance docket directly from this app.
             </p>
           </div>
 
-          {/* Quick Action CTA Pill Buttons */}
-          <div className="flex flex-wrap sm:flex-nowrap gap-2.5 self-start md:self-end">
+          {/* Right Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <button
               type="button"
-              onClick={handleStartComplaint}
-              className="py-3 px-5 rounded-2xl apple-pill-btn text-white text-xs sm:text-sm font-black flex items-center space-x-2 shadow-md hover:scale-105 active:scale-95 transition-all"
+              onClick={handleOpenModal}
+              className="py-3 px-5 rounded-2xl mac-secondary-btn text-slate-800 hover:text-emerald-800 text-xs font-bold flex items-center justify-center space-x-2 shadow-xs hover:border-emerald-300 transition-all whitespace-nowrap"
             >
-              <ShieldAlert className="w-4 h-4" />
-              <span>File a Complaint Now</span>
+              <Scale className="w-4 h-4 text-emerald-600" />
+              <span>How to Complain & Legal Rights (View Details)</span>
             </button>
 
             <button
               type="button"
-              onClick={handleViewHistory}
-              className="py-3 px-4 rounded-2xl mac-secondary-btn text-slate-700 hover:text-emerald-800 text-xs sm:text-sm font-bold flex items-center space-x-1.5 shadow-xs hover:shadow-sm transition-all"
+              onClick={handleStartComplaint}
+              className="py-3 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center space-x-2 shadow-md shadow-rose-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
             >
-              <span>Track Grievances</span>
+              <ShieldAlert className="w-4 h-4" />
+              <span>File a Complaint Now</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* 3-Step Simple Flow on How to Complain */}
-        <div className="relative z-10 space-y-3">
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-            How In-App Grievance Filing Works (3 Simple Steps)
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Step 1 */}
-            <div className="p-5 rounded-3xl bg-white/90 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-black flex items-center justify-center font-mono">
-                    01
-                  </span>
-                  <Camera className="w-5 h-5 text-emerald-600" />
-                </div>
-                <h4 className="text-sm font-black text-slate-900">1. Capture Photographic Evidence</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Take a clear photo showing the violation: the expired date, missing ingredient table, torn seal, adulterated food, or store receipt.
-                </p>
+      {/* COMPREHENSIVE COMPLAINT & LEGAL RIGHTS POP-UP MODAL */}
+      <UniversalModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Consumer Food Safety Grievance & Legal Rights Guide"
+        subtitle="Sections 23, 24, 31 & 51 of the Food Safety & Standards Act 2006 (Govt. of India)"
+        badge="LEGAL REDRESSAL DOSSIER"
+        badgeColor="bg-rose-50 text-rose-800 border-rose-200"
+        icon={<ShieldAlert className="w-5 h-5 text-rose-600" />}
+        maxWidth="max-w-4xl"
+        footer={
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-xs text-slate-500">
+              FinePrint generates structured grievance dockets with unique Reference IDs.
+            </span>
+            <button
+              type="button"
+              onClick={handleStartComplaint}
+              className="w-full sm:w-auto py-2.5 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center space-x-2 shadow-md shadow-rose-600/20"
+            >
+              <ShieldAlert className="w-4 h-4" />
+              <span>Launch In-App Complaint Filing</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* 3 Step Procedure Overview */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black">
+                1
               </div>
-              <div className="text-[11px] font-mono text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-xl w-fit">
-                Accepted: JPEG, PNG, Camera
-              </div>
+              <h5 className="font-bold text-slate-900 text-xs">Snap the Physical Label & Bill</h5>
+              <p className="text-[11px] text-slate-500">
+                Capture the batch number, manufacturer license, date stamp, and purchase invoice.
+              </p>
             </div>
 
-            {/* Step 2 */}
-            <div className="p-5 rounded-3xl bg-white/90 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="w-7 h-7 rounded-xl bg-blue-100 text-blue-800 text-xs font-black flex items-center justify-center font-mono">
-                    02
-                  </span>
-                  <FileCheck2 className="w-5 h-5 text-blue-600" />
-                </div>
-                <h4 className="text-sm font-black text-slate-900">2. Submit In-App Grievance</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Fill in the brand name, batch number, seller/store name, and city. Upload the evidence photo and click submit. You receive a unique Tracking Reference ID.
-                </p>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black">
+                2
               </div>
-              <div className="text-[11px] font-mono text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-xl w-fit">
-                Instant Tracking Reference ID
-              </div>
+              <h5 className="font-bold text-slate-900 text-xs">Submit Through FinePrint</h5>
+              <p className="text-[11px] text-slate-500">
+                Our engine automatically tags the violated Section of the FSS Act 2006.
+              </p>
             </div>
 
-            {/* Step 3 */}
-            <div className="p-5 rounded-3xl bg-white/90 border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-3">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="w-7 h-7 rounded-xl bg-purple-100 text-purple-800 text-xs font-black flex items-center justify-center font-mono">
-                    03
-                  </span>
-                  <Building2 className="w-5 h-5 text-purple-600" />
-                </div>
-                <h4 className="text-sm font-black text-slate-900">3. Regulatory Escalation</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  FINEPRINT structures your case under the FSS Act 2006. You can track updates in the app and forward the dossier directly to the National Consumer Helpline (1915).
-                </p>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+              <div className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black">
+                3
               </div>
-              <div className="text-[11px] font-mono text-purple-700 font-bold bg-purple-50 px-2.5 py-1 rounded-xl w-fit">
-                FSSAI & NCH Compatible
-              </div>
+              <h5 className="font-bold text-slate-900 text-xs">Auto-Dossier Escalation</h5>
+              <p className="text-[11px] text-slate-500">
+                Download your formal evidence dossier formatted for National Consumer Helpline (1915).
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Interactive Violations Selector & Legal Rights Explorer */}
-        <div className="relative z-10 space-y-4 pt-2 border-t border-slate-200/80">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-              Common Offenses You Can Report Right Now
-            </h3>
-            <span className="text-[11px] text-slate-400 font-medium">Select an issue to view legal rights</span>
+          {/* Select Violation Category */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Select Specific Violation Type:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {violations.map((v) => {
+                const Icon = v.icon;
+                const isSelected = selectedViolation === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setSelectedViolation(v.id);
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 border transition-all ${
+                      isSelected
+                        ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{v.title}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Issue Pills */}
-          <div className="flex flex-wrap gap-2">
-            {violations.map((v) => {
-              const Icon = v.icon;
-              const isSelected = selectedViolation === v.id;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => {
-                    sounds.playClick();
-                    setSelectedViolation(v.id);
-                  }}
-                  className={`px-3.5 py-2 rounded-2xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                    isSelected
-                      ? 'bg-slate-900 text-white shadow-md'
-                      : 'bg-white/80 hover:bg-white text-slate-700 border border-slate-200/80'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-rose-400' : 'text-slate-500'}`} />
-                  <span>{v.title}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Offense Dossier Card */}
-          <div className="p-5 sm:p-6 rounded-[28px] bg-slate-50/90 border border-slate-200/90 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+          {/* Active Violation Details Card */}
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
               <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-600 block">
-                  Applicable Indian Law
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase block">
+                  Governing Law
                 </span>
-                <h4 className="text-base sm:text-lg font-black text-slate-900">
-                  {currentViolation.law}
-                </h4>
+                <h4 className="text-base font-black text-slate-900">{currentViolation.law}</h4>
               </div>
-
-              <div className="px-3 py-1 rounded-xl bg-rose-100 text-rose-900 text-xs font-mono font-bold self-start sm:self-center">
+              <div className="px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-mono font-bold self-start sm:self-auto">
                 Legal Penalty: {currentViolation.penalty}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="space-y-1">
-                <span className="font-extrabold text-slate-900 text-[11px] block">
-                  What Constitutes a Violation:
-                </span>
-                <p className="text-slate-600 leading-relaxed">
-                  {currentViolation.desc}
-                </p>
+                <span className="font-extrabold text-slate-900 block">What Constitutes a Violation:</span>
+                <p className="text-slate-600 leading-relaxed">{currentViolation.desc}</p>
               </div>
 
-              <div className="space-y-1 bg-white p-3 rounded-2xl border border-slate-200/60">
-                <span className="font-extrabold text-emerald-800 text-[11px] flex items-center space-x-1">
+              <div className="space-y-1 bg-white p-3 rounded-xl border border-slate-200">
+                <span className="font-extrabold text-emerald-800 flex items-center space-x-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Evidence Required For Successful Prosecution:</span>
+                  <span>Evidence Required For Prosecution:</span>
                 </span>
-                <p className="text-slate-600 leading-relaxed">
-                  {currentViolation.evidenceNeeded}
-                </p>
+                <p className="text-slate-600 leading-relaxed">{currentViolation.evidenceNeeded}</p>
               </div>
             </div>
-
-            {/* Quick action for this offense */}
-            <div className="flex justify-end pt-1">
-              <button
-                type="button"
-                onClick={handleStartComplaint}
-                className="py-2 px-4 rounded-xl apple-pill-btn text-white text-xs font-bold flex items-center space-x-1.5 shadow-xs"
-              >
-                <span>Report This Violation in App</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
-        </div>
 
-        {/* Direct Escalation Hotlines & Helplines (Govt. of India) */}
-        <div className="relative z-10 pt-4 border-t border-slate-200/80 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <span className="text-xs font-black text-slate-900 uppercase tracking-wider">
-              Official Government Portals & Emergency Helplines
+          {/* Official Govt Escalation Portals & Helplines */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              Official Government Portals & Helplines (Govt. of India)
             </span>
-            <span className="text-[11px] text-slate-400">Toll-free consumer grievance lines</span>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* NCH */}
-            <a
-              href="tel:1915"
-              className="p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 flex items-center justify-between group transition-all"
-            >
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  National Consumer Helpline
-                </span>
-                <span className="text-sm font-black text-slate-900 group-hover:text-emerald-700 font-mono">
-                  1915
-                </span>
-                <span className="text-[10px] text-slate-500 block">Ministry of Consumer Affairs</span>
-              </div>
-              <PhoneCall className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-            </a>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <a
+                href="tel:1915"
+                className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-between group transition-colors"
+              >
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                    National Consumer Helpline
+                  </span>
+                  <span className="text-base font-black font-mono text-slate-900 group-hover:text-emerald-700">
+                    1915
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">Toll-Free Grievance</span>
+                </div>
+                <PhoneCall className="w-4 h-4 text-emerald-600" />
+              </a>
 
-            {/* FSSAI FoSCoS */}
-            <a
-              href="tel:1800112100"
-              className="p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 flex items-center justify-between group transition-all"
-            >
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  FSSAI Food Safety Toll-Free
-                </span>
-                <span className="text-sm font-black text-slate-900 group-hover:text-emerald-700 font-mono">
-                  1800 112 100
-                </span>
-                <span className="text-[10px] text-slate-500 block">Food Safety & Standards Authority</span>
-              </div>
-              <PhoneCall className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-            </a>
+              <a
+                href="tel:1800112100"
+                className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-between group transition-colors"
+              >
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                    FSSAI FoSCoS Portal
+                  </span>
+                  <span className="text-base font-black font-mono text-slate-900 group-hover:text-emerald-700">
+                    1800 112 100
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">Food Safety Authority</span>
+                </div>
+                <PhoneCall className="w-4 h-4 text-emerald-600" />
+              </a>
 
-            {/* WhatsApp NCH */}
-            <a
-              href="https://wa.me/918800001915?text=Hello%20NCH%20I%20want%20to%20file%20a%20food%20safety%20complaint"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/80 flex items-center justify-between group transition-all"
-            >
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  NCH WhatsApp Helpline
-                </span>
-                <span className="text-sm font-black text-slate-900 group-hover:text-emerald-700 font-mono">
-                  +91 88000 01915
-                </span>
-                <span className="text-[10px] text-slate-500 block">Chat-based grievance lodging</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-            </a>
+              <a
+                href="https://wa.me/918800001915?text=Hello%20NCH%20I%20want%20to%20file%20a%20food%20safety%20complaint"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-between group transition-colors"
+              >
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                    NCH WhatsApp Helpline
+                  </span>
+                  <span className="text-sm font-black font-mono text-slate-900 group-hover:text-emerald-700">
+                    +91 88000 01915
+                  </span>
+                  <span className="text-[10px] text-slate-500 block">Chat-Based Redressal</span>
+                </div>
+                <ExternalLink className="w-4 h-4 text-emerald-600" />
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </UniversalModal>
     </section>
   );
 };
-

@@ -14,6 +14,7 @@ import {
   Droplets
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { UniversalModal } from './UniversalModal';
 
 interface AdditiveItem {
   id: string;
@@ -244,61 +245,46 @@ export const InteractiveSafetySimulator: React.FC = () => {
         </div>
       </div>
 
-      {/* THE INTERACTIVE POP-UP MODAL (Opens with smooth blur backdrop) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
-          <div
-            className="w-full max-w-3xl bg-white/95 backdrop-blur-3xl rounded-[36px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Specular Top Reflection */}
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
+      {/* THE INTERACTIVE POP-UP MODAL */}
+      <UniversalModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title="Food Safety & Additives Laboratory"
+        subtitle="Tap additives & adjust sodium/sugar sliders to test real-time regulatory safety scores"
+        badge="INTERACTIVE SIMULATOR LAB"
+        icon={<Sparkles className="w-5 h-5 text-emerald-600" />}
+        maxWidth="max-w-3xl"
+        footer={
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={toggleSound}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 flex items-center space-x-1.5 transition-colors shadow-xs"
+              title="Toggle sound effects"
+            >
+              {soundEnabled ? (
+                <>
+                  <Volume2 className="w-4 h-4 text-emerald-600" />
+                  <span>Audio On</span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-4 h-4 text-slate-400" />
+                  <span>Muted</span>
+                </>
+              )}
+            </button>
 
-            {/* Apple Circle Dismiss Button */}
             <button
               type="button"
               onClick={closeModal}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-              aria-label="Close"
+              className="w-full sm:w-auto py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition-all"
             >
-              <X className="w-4 h-4 stroke-[2.5]" />
+              Apply & Close Simulator
             </button>
-
-            {/* Modal Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 relative z-10 pr-8">
-              <div>
-                <div className="inline-flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full mb-1">
-                  <Sparkles className="w-3 h-3 text-emerald-600" />
-                  <span>Interactive Safety Simulator Pop-Up</span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Food Safety & Additives Laboratory
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Tap additives & adjust sodium/sugar sliders to test real-time regulatory safety scores.
-                </p>
-              </div>
-
-              {/* Audio Toggle */}
-              <button
-                type="button"
-                onClick={toggleSound}
-                className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 flex items-center space-x-1.5 transition-colors shadow-xs"
-                title="Toggle sound effects"
-              >
-                {soundEnabled ? (
-                  <>
-                    <Volume2 className="w-4 h-4 text-emerald-600" />
-                    <span>Audio On</span>
-                  </>
-                ) : (
-                  <>
-                    <VolumeX className="w-4 h-4 text-slate-400" />
-                    <span>Muted</span>
-                  </>
-                )}
-              </button>
-            </div>
+          </div>
+        }
+      >
 
             {/* Dynamic Gauge & Sliders */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50/90 p-5 sm:p-6 rounded-[28px] border border-slate-200/90 relative z-10">
@@ -471,20 +457,7 @@ export const InteractiveSafetySimulator: React.FC = () => {
                 })}
               </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-end pt-2 border-t border-slate-100 relative z-10">
-              <button
-                type="button"
-                onClick={closeModal}
-                className="py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition-all"
-              >
-                Apply & Close Simulator
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </UniversalModal>
     </>
   );
 };

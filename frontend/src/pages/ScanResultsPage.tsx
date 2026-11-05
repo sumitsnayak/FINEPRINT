@@ -5,6 +5,7 @@ import { AllergenAlert } from '../components/AllergenAlert';
 import { IngredientCard } from '../components/IngredientCard';
 import { NutritionTable } from '../components/NutritionTable';
 import { ExplainableScoreModal } from '../components/ExplainableScoreModal';
+import { UniversalModal } from '../components/UniversalModal';
 import { useScan } from '../context/ScanContext';
 import { api } from '../services/api';
 import {
@@ -15,7 +16,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Check,
-  HelpCircle
+  HelpCircle,
+  ChevronRight,
+  Search,
+  FileText
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
@@ -33,6 +37,10 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
   const [saved, setSaved] = useState(false);
   const [loggedToDiary, setLoggedToDiary] = useState(false);
   const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+  const [isIngredientsModalOpen, setIsIngredientsModalOpen] = useState(false);
+  const [isNutritionModalOpen, setIsNutritionModalOpen] = useState(false);
+  const [isAlternativesModalOpen, setIsAlternativesModalOpen] = useState(false);
+  const [ingredientSearch, setIngredientSearch] = useState('');
 
   const handleSave = async () => {
     if (scanResult.scan_id) {
@@ -263,94 +271,331 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
         </div>
       </div>
 
-      {/* Decoded Ingredients Section */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              Ingredients Intelligence ({scanResult.ingredient_analysis?.ingredient_count || 0})
-            </h2>
-            <p className="text-xs text-slate-500">
-              Click any ingredient to inspect safety evidence, INS code, and manufacturing purpose.
-            </p>
-          </div>
+      {/* Decoded Ingredients Section (Compact Preview + View More Modal) */}
+      {(() => {
+        const allIngredients = scanResult.ingredient_analysis?.ingredients || [];
+        const previewIngredients = allIngredients.slice(0, 3);
+        const filteredIngredients = ingredientSearch.trim()
+          ? allIngredients.filter(
+              (ing: any) =>
+                ing.name?.toLowerCase().includes(ingredientSearch.toLowerCase()) ||
+                ing.ins_code?.toLowerCase().includes(ingredientSearch.toLowerCase()) ||
+                ing.category?.toLowerCase().includes(ingredientSearch.toLowerCase())
+            )
+          : allIngredients;
 
-          <div className="flex items-center space-x-2 text-xs">
-            <span
-              className={`px-3 py-1 rounded-full font-bold ${
-                scanResult.ingredient_analysis?.dietary_flags?.is_vegetarian
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border border-rose-200'
-              }`}
-            >
-              {scanResult.ingredient_analysis?.dietary_flags?.is_vegetarian ? 'Vegetarian' : 'Non-Vegetarian'}
-            </span>
-            <span
-              className={`px-3 py-1 rounded-full font-bold ${
-                scanResult.ingredient_analysis?.dietary_flags?.is_vegan
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-slate-100 text-slate-600 border border-slate-200'
-              }`}
-            >
-              {scanResult.ingredient_analysis?.dietary_flags?.is_vegan ? 'Vegan' : 'Non-Vegan'}
-            </span>
-          </div>
-        </div>
-
-        <div className="space-y-2.5">
-          {scanResult.ingredient_analysis?.ingredients?.map((ing, idx) => (
-            <IngredientCard key={idx} ingredient={ing} />
-          ))}
-        </div>
-      </div>
-
-      {/* Nutrition Facts Table */}
-      <NutritionTable
-        nutrition100g={scanResult.nutrition_facts || {}}
-        sourceConfidence={scanResult.data_confidence}
-      />
-
-      {/* Healthier Alternatives Section */}
-      {scanResult.healthier_alternatives && scanResult.healthier_alternatives.length > 0 && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6 text-slate-900">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-emerald-600" />
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Recommended Healthier Alternatives</h2>
-              <p className="text-xs text-slate-500">
-                Better nutritional profile without conflicting with your declared allergens.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {scanResult.healthier_alternatives.map((alt, i) => (
-              <div
-                key={i}
-                className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-300 transition-all flex flex-col justify-between shadow-xs hover:shadow"
-              >
+        return (
+          <>
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4 text-slate-900">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                      {alt.brand} · {alt.category}
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Ingredients Intelligence
                     </span>
-                    <ScoreBadge score={alt.overall_score} size="sm" />
+                    <span className="text-xs font-mono font-bold text-slate-500">
+                      ({allIngredients.length} ingredients)
+                    </span>
                   </div>
-                  <h3 className="font-bold text-base text-slate-900">{alt.name}</h3>
-                  <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
-                    <strong className="text-emerald-700">Why it's better:</strong> {alt.why_better}
+                  <h2 className="text-xl font-bold text-slate-900 mt-1">
+                    Decoded Ingredients & Additives
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Showing top detected ingredients. Tap below to inspect the full list with safety evidence.
                   </p>
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-                  <span>
-                    Energy: {alt.nutrition_per_100g?.calories} kcal · Protein: {alt.nutrition_per_100g?.protein}g
+                <div className="flex items-center space-x-2 text-xs">
+                  <span
+                    className={`px-3 py-1 rounded-full font-bold ${
+                      scanResult.ingredient_analysis?.dietary_flags?.is_vegetarian
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
+                  >
+                    {scanResult.ingredient_analysis?.dietary_flags?.is_vegetarian ? 'Vegetarian' : 'Non-Vegetarian'}
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full font-bold ${
+                      scanResult.ingredient_analysis?.dietary_flags?.is_vegan
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                    }`}
+                  >
+                    {scanResult.ingredient_analysis?.dietary_flags?.is_vegan ? 'Vegan' : 'Non-Vegan'}
                   </span>
                 </div>
               </div>
-            ))}
+
+              {/* Preview of top 3 ingredients */}
+              <div className="space-y-2.5">
+                {previewIngredients.map((ing: any, idx: number) => (
+                  <IngredientCard key={idx} ingredient={ing} />
+                ))}
+              </div>
+
+              {/* View More Ingredients Button */}
+              {allIngredients.length > 3 && (
+                <div className="pt-2 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setIsIngredientsModalOpen(true);
+                    }}
+                    className="w-full sm:w-auto px-6 py-3 rounded-2xl mac-secondary-btn hover:text-emerald-800 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2 shadow-xs border-slate-200 hover:border-emerald-300 transition-all hover:scale-[1.01]"
+                  >
+                    <span>View All Ingredients & Additive Details ({allIngredients.length} Items)</span>
+                    <ChevronRight className="w-4 h-4 text-emerald-600" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Complete Ingredients Pop-Up Modal */}
+            <UniversalModal
+              isOpen={isIngredientsModalOpen}
+              onClose={() => setIsIngredientsModalOpen(false)}
+              title="Full Ingredients & Chemical Additives Intelligence"
+              subtitle={`Complete list of all ${allIngredients.length} ingredients decoded from label fine print`}
+              badge="INGREDIENT DOSSIER"
+              maxWidth="max-w-3xl"
+            >
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={ingredientSearch}
+                    onChange={(e) => setIngredientSearch(e.target.value)}
+                    placeholder="Search by ingredient name, INS code, or category..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                  {filteredIngredients.length > 0 ? (
+                    filteredIngredients.map((ing: any, idx: number) => (
+                      <IngredientCard key={idx} ingredient={ing} />
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-400 text-xs">
+                      No ingredients matching "{ingredientSearch}".
+                    </div>
+                  )}
+                </div>
+              </div>
+            </UniversalModal>
+          </>
+        );
+      })()}
+
+      {/* Nutrition Facts Preview + View Complete Panel Modal */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Nutritional Profile
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">
+                Confidence: <strong className="text-emerald-700">{scanResult.data_confidence || 'High'}</strong>
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mt-1">Nutrition Quick Summary</h2>
+            <p className="text-xs text-slate-500">
+              Core macro and micronutrient breakdown per 100g serving against ICMR-NIN safe limits.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              setIsNutritionModalOpen(true);
+            }}
+            className="py-2.5 px-5 rounded-2xl apple-pill-btn text-white text-xs font-bold flex items-center space-x-2 shadow-xs self-start sm:self-auto hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            <span>View Complete Nutrition Panel (See Details)</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* 4 Macro Quick Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Energy */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Energy</span>
+            <div className="text-xl font-black font-mono text-slate-900">
+              {scanResult.nutrition_facts?.calories ?? '--'} <span className="text-xs font-normal text-slate-500">kcal</span>
+            </div>
+            <span className="text-[10px] text-slate-500 block">per 100g</span>
+          </div>
+
+          {/* Added Sugars */}
+          <div
+            className={`p-4 rounded-2xl border space-y-1 ${
+              (scanResult.nutrition_facts?.added_sugar ?? 0) > 10
+                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                : (scanResult.nutrition_facts?.added_sugar ?? 0) > 5
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-75 block">Added Sugar</span>
+            <div className="text-xl font-black font-mono">
+              {scanResult.nutrition_facts?.added_sugar ?? scanResult.nutrition_facts?.total_sugar ?? '--'}{' '}
+              <span className="text-xs font-normal">g</span>
+            </div>
+            <span className="text-[10px] font-semibold block">
+              {(scanResult.nutrition_facts?.added_sugar ?? 0) > 10 ? '⚠️ High (Exceeds Limit)' : '✓ Within Limit'}
+            </span>
+          </div>
+
+          {/* Sodium */}
+          <div
+            className={`p-4 rounded-2xl border space-y-1 ${
+              (scanResult.nutrition_facts?.sodium ?? 0) > 600
+                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                : (scanResult.nutrition_facts?.sodium ?? 0) > 300
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-75 block">Sodium</span>
+            <div className="text-xl font-black font-mono">
+              {scanResult.nutrition_facts?.sodium ?? '--'} <span className="text-xs font-normal">mg</span>
+            </div>
+            <span className="text-[10px] font-semibold block">
+              {(scanResult.nutrition_facts?.sodium ?? 0) > 600 ? '⚠️ High Salt Content' : '✓ Acceptable'}
+            </span>
+          </div>
+
+          {/* Protein */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Protein</span>
+            <div className="text-xl font-black font-mono text-slate-900">
+              {scanResult.nutrition_facts?.protein ?? '--'} <span className="text-xs font-normal text-slate-500">g</span>
+            </div>
+            <span className="text-[10px] text-slate-500 block">Clean macronutrient</span>
           </div>
         </div>
+      </div>
+
+      {/* Complete Nutrition Panel Modal */}
+      <UniversalModal
+        isOpen={isNutritionModalOpen}
+        onClose={() => setIsNutritionModalOpen(false)}
+        title="Complete Nutrition Facts Panel"
+        subtitle={`${scanResult.product_name} · Per 100g & Serving Values`}
+        badge="NUTRITIONAL MATRIX"
+        maxWidth="max-w-3xl"
+      >
+        <NutritionTable
+          nutrition100g={scanResult.nutrition_facts || {}}
+          sourceConfidence={scanResult.data_confidence}
+        />
+      </UniversalModal>
+
+      {/* Healthier Alternatives Section (Compact Preview + View More Modal) */}
+      {scanResult.healthier_alternatives && scanResult.healthier_alternatives.length > 0 && (
+        <>
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6 text-slate-900">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-5 h-5 text-emerald-600" />
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Recommended Healthier Alternatives</h2>
+                  <p className="text-xs text-slate-500">
+                    Better nutritional profile without conflicting with your declared allergens.
+                  </p>
+                </div>
+              </div>
+
+              {scanResult.healthier_alternatives.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    setIsAlternativesModalOpen(true);
+                  }}
+                  className="py-2.5 px-4 rounded-2xl mac-secondary-btn text-xs font-bold text-slate-800 hover:text-emerald-800 flex items-center space-x-1.5 shadow-xs self-start sm:self-auto"
+                >
+                  <span>View All Alternatives ({scanResult.healthier_alternatives.length})</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-emerald-600" />
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {scanResult.healthier_alternatives.slice(0, 2).map((alt, i) => (
+                <div
+                  key={i}
+                  className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-300 transition-all flex flex-col justify-between shadow-xs hover:shadow"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        {alt.brand} · {alt.category}
+                      </span>
+                      <ScoreBadge score={alt.overall_score} size="sm" />
+                    </div>
+                    <h3 className="font-bold text-base text-slate-900">{alt.name}</h3>
+                    <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                      <strong className="text-emerald-700">Why it's better:</strong> {alt.why_better}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      Energy: {alt.nutrition_per_100g?.calories} kcal · Protein: {alt.nutrition_per_100g?.protein}g
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* All Alternatives Pop-Up Modal */}
+          <UniversalModal
+            isOpen={isAlternativesModalOpen}
+            onClose={() => setIsAlternativesModalOpen(false)}
+            title="Clean & Healthier Swaps"
+            subtitle={`Verified better food alternatives for ${scanResult.product_name}`}
+            badge="CLEAN ALTERNATIVES"
+            icon={<Sparkles className="w-5 h-5 text-emerald-600" />}
+            maxWidth="max-w-4xl"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {scanResult.healthier_alternatives.map((alt, i) => (
+                <div
+                  key={i}
+                  className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-300 transition-all flex flex-col justify-between shadow-xs"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                        {alt.brand} · {alt.category}
+                      </span>
+                      <ScoreBadge score={alt.overall_score} size="sm" />
+                    </div>
+                    <h3 className="font-bold text-base text-slate-900">{alt.name}</h3>
+                    <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                      <strong className="text-emerald-700">Why it's better:</strong> {alt.why_better}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      Energy: {alt.nutrition_per_100g?.calories} kcal · Protein: {alt.nutrition_per_100g?.protein}g
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </UniversalModal>
+        </>
       )}
 
       {/* Explainable Food Score Modal */}

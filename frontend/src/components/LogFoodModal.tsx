@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   X,
+  ArrowLeft,
   Upload,
   Camera,
   Barcode,
@@ -9,6 +10,7 @@ import {
   ShieldCheck,
   ChevronRight
 } from 'lucide-react';
+import { sounds } from '../utils/soundEffects';
 
 interface LogFoodModalProps {
   isOpen: boolean;
@@ -21,6 +23,28 @@ export const LogFoodModal: React.FC<LogFoodModalProps> = ({
   onClose,
   onSelectAction,
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        sounds.playClick();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -37,7 +61,35 @@ export const LogFoodModal: React.FC<LogFoodModalProps> = ({
 
       {/* Main Elevated White Sheet */}
       <div className="w-full sm:max-w-md bg-white text-slate-900 rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 relative animate-in slide-in-from-bottom duration-300">
-        <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto sm:hidden -mt-2 mb-1" />
+        {/* Top Header bar with Back button */}
+        <div className="flex items-center justify-between pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200/60 transition-all hover:scale-105 active:scale-95 shadow-xs"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+            <span>Back</span>
+          </button>
+
+          <div className="w-12 h-1.5 bg-slate-200 rounded-full sm:hidden" />
+
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900 sm:hidden"
+            aria-label="Close"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
         {/* Modal Title */}
         <div className="text-center space-y-1">

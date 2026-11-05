@@ -17,6 +17,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { UniversalModal } from './UniversalModal';
 
 interface PillarItem {
   id: string;
@@ -330,96 +331,17 @@ export const FoodEvaluationPillars: React.FC<FoodEvaluationPillarsProps> = ({
 
       {/* THE PILLAR DETAILS POP-UP MODAL */}
       {activePillar && (
-        <div
-          className="fixed inset-0 z-50 bg-black/65 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
-          onClick={handleCloseModal}
-        >
-          <div
-            className="w-full max-w-2xl bg-white/95 backdrop-blur-3xl rounded-[36px] p-6 sm:p-8 space-y-5 border border-white/80 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Specular Top Reflection */}
-            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
-
-            {/* Apple Circle Dismiss Button */}
-            <button
-              type="button"
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4 stroke-[2.5]" />
-            </button>
-
-            {/* Header info */}
-            <div className="space-y-2 relative z-10 pr-8">
-              <div className="flex items-center space-x-2">
-                <span className={`px-2.5 py-0.5 rounded-full border text-[10px] font-mono font-bold ${activePillar.colorScheme.badgeBg} ${activePillar.colorScheme.badgeText}`}>
-                  PILLAR {activePillar.number} · {activePillar.details.category}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-3 pt-1">
-                <div className={`w-10 h-10 rounded-2xl ${activePillar.colorScheme.iconBg} ${activePillar.colorScheme.iconColor} flex items-center justify-center flex-shrink-0 shadow-xs`}>
-                  {React.createElement(activePillar.icon, { className: 'w-5 h-5 stroke-[2.2]' })}
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                    {activePillar.title}
-                  </h2>
-                  <p className="text-xs font-semibold text-emerald-700">
-                    {activePillar.details.headline}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Algorithm & Regulatory Breakdown */}
-            <div className="space-y-3.5 text-xs text-slate-700 relative z-10">
-              {/* Algorithm Box */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-                <span className="font-extrabold text-slate-900 flex items-center space-x-1.5 text-xs text-emerald-800">
-                  <Cpu className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                  <span>FINEPRINT Laboratory Methodology</span>
-                </span>
-                <p className="text-slate-600 leading-relaxed">
-                  {activePillar.details.algorithm}
-                </p>
-              </div>
-
-              {/* Regulatory Standard */}
-              <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center space-x-3">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                <span className="text-[11px] font-semibold text-emerald-900">
-                  Regulatory Compliance: {activePillar.details.regulatoryStandard}
-                </span>
-              </div>
-
-              {/* Real World Case Study */}
-              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
-                <span className="font-extrabold text-amber-900 flex items-center space-x-1.5 text-xs">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                  <span>Real-World Tested Case Study</span>
-                </span>
-                <div className="space-y-1 text-[11px] text-slate-700">
-                  <div>
-                    <span className="font-bold text-slate-900">Product Tested: </span>
-                    <span>{activePillar.details.caseStudy.product}</span>
-                  </div>
-                  <div>
-                    <span className="font-bold text-slate-900">Detected Concern: </span>
-                    <span className="text-rose-800">{activePillar.details.caseStudy.detectedIssue}</span>
-                  </div>
-                  <div className="pt-1 text-emerald-900 font-bold">
-                    <span>FINEPRINT Output: </span>
-                    <span>{activePillar.details.caseStudy.fineprintVerdict}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 relative z-10">
+        <UniversalModal
+          isOpen={!!activePillar}
+          onClose={handleCloseModal}
+          title={activePillar.title}
+          subtitle={activePillar.details.headline}
+          badge={`PILLAR ${activePillar.number} · ${activePillar.details.category}`}
+          badgeColor={`${activePillar.colorScheme.badgeBg} ${activePillar.colorScheme.badgeText}`}
+          icon={React.createElement(activePillar.icon, { className: 'w-5 h-5 text-emerald-600' })}
+          maxWidth="max-w-2xl"
+          footer={
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => handleAction(activePillar.details.actionTab)}
@@ -437,8 +359,51 @@ export const FoodEvaluationPillars: React.FC<FoodEvaluationPillarsProps> = ({
                 Close Standard
               </button>
             </div>
+          }
+        >
+          <div className="space-y-4">
+            {/* Algorithm Box */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+              <span className="font-extrabold text-slate-900 flex items-center space-x-1.5 text-xs text-emerald-800">
+                <Cpu className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                <span>FINEPRINT Laboratory Methodology</span>
+              </span>
+              <p className="text-slate-600 leading-relaxed text-xs">
+                {activePillar.details.algorithm}
+              </p>
+            </div>
+
+            {/* Regulatory Standard */}
+            <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center space-x-3">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span className="text-xs font-semibold text-emerald-900">
+                Regulatory Compliance: {activePillar.details.regulatoryStandard}
+              </span>
+            </div>
+
+            {/* Real World Case Study */}
+            <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
+              <span className="font-extrabold text-amber-900 flex items-center space-x-1.5 text-xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+                <span>Real-World Tested Case Study</span>
+              </span>
+              <div className="space-y-1 text-xs text-slate-700">
+                <div>
+                  <span className="font-bold text-slate-900">Product Tested: </span>
+                  <span>{activePillar.details.caseStudy.product}</span>
+                </div>
+                <div>
+                  <span className="font-bold text-slate-900">Detected Concern: </span>
+                  <span className="text-rose-800 font-semibold">{activePillar.details.caseStudy.detectedIssue}</span>
+                </div>
+                <div className="pt-1 text-emerald-900 font-bold">
+                  <span>FINEPRINT Output: </span>
+                  <span>{activePillar.details.caseStudy.fineprintVerdict}</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </UniversalModal>
       )}
     </section>
   );

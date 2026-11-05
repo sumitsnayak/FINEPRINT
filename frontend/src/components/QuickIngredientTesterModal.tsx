@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Sparkles, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 import { sounds } from '../utils/soundEffects';
 import { ScoreBadge } from './ScoreBadge';
+import { UniversalModal } from './UniversalModal';
 
 interface QuickIngredientTesterModalProps {
   isOpen: boolean;
@@ -64,26 +65,16 @@ export const QuickIngredientTesterModal: React.FC<QuickIngredientTesterModalProp
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200 rounded-[32px] p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 text-slate-900 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-black text-xl text-slate-900">Instant Food Safety Tester</h3>
-              <p className="text-xs text-slate-500">Paste any ingredient list to calculate food safety in real time</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-900"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Instant Food Safety Tester"
+      subtitle="Paste any ingredient list to calculate food safety in real time"
+      badge="LIVE INGREDIENT AUDIT"
+      icon={<Sparkles className="w-5 h-5 text-emerald-600" />}
+      maxWidth="max-w-2xl"
+    >
+      <div className="space-y-5">
         {/* Input Text Area */}
         <div className="space-y-3">
           <div>
@@ -147,7 +138,9 @@ export const QuickIngredientTesterModal: React.FC<QuickIngredientTesterModalProp
                   Food Safety Standard Score
                 </span>
                 <h4 className="text-xl font-black text-slate-900">{result.product_name}</h4>
-                <p className="text-xs text-slate-500">Verdict: <strong className="text-emerald-700">{result.summary_verdict}</strong></p>
+                <p className="text-xs text-slate-500">
+                  Verdict: <strong className="text-emerald-700">{result.summary_verdict}</strong>
+                </p>
               </div>
               <ScoreBadge score={result.overall_score} size="ring" />
             </div>
@@ -172,6 +165,6 @@ export const QuickIngredientTesterModal: React.FC<QuickIngredientTesterModalProp
           </div>
         )}
       </div>
-    </div>
+    </UniversalModal>
   );
 };

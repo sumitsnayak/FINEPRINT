@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sounds } from '../utils/soundEffects';
+import { UniversalModal } from './UniversalModal';
 
 interface NewsArticle {
   id: string;
@@ -329,47 +330,43 @@ export const FoodSafetyArticles: React.FC = () => {
 
       {/* Full Live Article Brief Modal */}
       {activeArticle && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
-          <div className="w-full max-w-2xl bg-white/95 backdrop-blur-3xl rounded-[36px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-            {/* Specular Top Reflection */}
-            <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
-
-            {/* Apple Circle Dismiss Button */}
-            <button
-              type="button"
-              onClick={() => {
-                sounds.playClick();
-                setActiveArticle(null);
-              }}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-              aria-label="Close"
-            >
-              <X className="w-4 h-4 stroke-[2.5]" />
-            </button>
-
-            {/* Header info */}
-            <div className="space-y-2 relative z-10 pr-8">
-              <div className="flex items-center space-x-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-mono font-bold">
-                  {activeArticle.tag}
-                </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  {activeArticle.published_at} · Verified Source
-                </span>
-              </div>
-
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
-                {activeArticle.title}
-              </h2>
-
-              <div className="flex items-center space-x-2 text-xs text-emerald-800 font-bold">
-                <Globe2 className="w-3.5 h-3.5" />
-                <span>Published by {activeArticle.source}</span>
-              </div>
+        <UniversalModal
+          isOpen={!!activeArticle}
+          onClose={() => setActiveArticle(null)}
+          title={activeArticle.title}
+          subtitle={`Published by ${activeArticle.source} · ${activeArticle.published_at}`}
+          badge={activeArticle.tag}
+          icon={<Globe2 className="w-5 h-5 text-emerald-600" />}
+          maxWidth="max-w-2xl"
+          footer={
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              {activeArticle.link && (
+                <a
+                  href={activeArticle.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl mac-secondary-btn text-emerald-800 text-xs font-bold inline-flex items-center justify-center space-x-1.5 hover:text-emerald-900 shadow-xs"
+                >
+                  <span>Read Full Article on {activeArticle.source}</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveArticle(null);
+                }}
+                className="w-full sm:w-auto py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold"
+              >
+                Close Brief
+              </button>
             </div>
-
+          }
+        >
+          <div className="space-y-4">
             {/* Stat Callout Banner */}
-            <div className="p-4 rounded-3xl bg-emerald-50/80 border border-emerald-200/90 flex items-center space-x-3.5 relative z-10">
+            <div className="p-4 rounded-3xl bg-emerald-50/80 border border-emerald-200/90 flex items-center space-x-3.5">
               <div className="px-3 py-2 rounded-2xl bg-emerald-600 text-white font-mono font-black text-sm shadow-sm flex-shrink-0">
                 {activeArticle.stat_number}
               </div>
@@ -384,7 +381,7 @@ export const FoodSafetyArticles: React.FC = () => {
             </div>
 
             {/* Article Sections */}
-            <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed relative z-10">
+            <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
                 <span className="font-extrabold text-slate-900 flex items-center space-x-1.5 text-xs text-emerald-800">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
@@ -406,34 +403,8 @@ export const FoodSafetyArticles: React.FC = () => {
                 </p>
               </div>
             </div>
-
-            {/* Footer action buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100 relative z-10">
-              {activeArticle.link && (
-                <a
-                  href={activeArticle.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl mac-secondary-btn text-emerald-800 text-xs font-bold inline-flex items-center justify-center space-x-1.5 hover:text-emerald-900 shadow-xs"
-                >
-                  <span>Read Full Article on {activeArticle.source}</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              )}
-
-              <button
-                type="button"
-                onClick={() => {
-                  sounds.playClick();
-                  setActiveArticle(null);
-                }}
-                className="w-full sm:w-auto py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold"
-              >
-                Close Brief
-              </button>
-            </div>
           </div>
-        </div>
+        </UniversalModal>
       )}
     </section>
   );

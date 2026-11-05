@@ -4,8 +4,9 @@ import { ScoreBadge } from '../components/ScoreBadge';
 import { NutritionTable } from '../components/NutritionTable';
 import { IngredientCard } from '../components/IngredientCard';
 import { ExplainableScoreModal } from '../components/ExplainableScoreModal';
+import { UniversalModal } from '../components/UniversalModal';
 import { useScan } from '../context/ScanContext';
-import { ArrowLeft, Calendar, Scale, Sparkles, Check, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Scale, Sparkles, Check, HelpCircle, ChevronRight, Search } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
 interface ProductDetailsPageProps {
@@ -24,6 +25,9 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [logged, setLogged] = useState(false);
   const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+  const [isIngredientsModalOpen, setIsIngredientsModalOpen] = useState(false);
+  const [isNutritionModalOpen, setIsNutritionModalOpen] = useState(false);
+  const [ingredientSearch, setIngredientSearch] = useState('');
   const { addToCompare } = useScan();
 
   useEffect(() => {
@@ -189,23 +193,213 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({
         </div>
       </div>
 
-      {/* Ingredients breakdown */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-slate-900">Ingredients & Additives Analysis</h2>
-        <div className="space-y-2.5">
-          {product.ingredient_analysis?.ingredients?.map((ing: any, i: number) => (
-            <IngredientCard key={i} ingredient={ing} />
-          ))}
+      {/* Ingredients breakdown (Compact preview + View More Modal) */}
+      {(() => {
+        const allIngredients = product.ingredient_analysis?.ingredients || [];
+        const previewIngredients = allIngredients.slice(0, 3);
+        const filteredIngredients = ingredientSearch.trim()
+          ? allIngredients.filter(
+              (ing: any) =>
+                ing.name?.toLowerCase().includes(ingredientSearch.toLowerCase()) ||
+                ing.ins_code?.toLowerCase().includes(ingredientSearch.toLowerCase()) ||
+                ing.category?.toLowerCase().includes(ingredientSearch.toLowerCase())
+            )
+          : allIngredients;
+
+        return (
+          <>
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4 text-slate-900">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      Ingredients Intelligence
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500">
+                      ({allIngredients.length} ingredients)
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900 mt-1">
+                    Ingredients & Additives Analysis
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Showing top detected ingredients. Tap below to inspect all chemical additives and INS numbers.
+                  </p>
+                </div>
+              </div>
+
+              {/* Preview top 3 ingredients */}
+              <div className="space-y-2.5">
+                {previewIngredients.map((ing: any, i: number) => (
+                  <IngredientCard key={i} ingredient={ing} />
+                ))}
+              </div>
+
+              {/* View More Ingredients Button */}
+              {allIngredients.length > 3 && (
+                <div className="pt-2 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      setIsIngredientsModalOpen(true);
+                    }}
+                    className="w-full sm:w-auto px-6 py-3 rounded-2xl mac-secondary-btn hover:text-emerald-800 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2 shadow-xs border-slate-200 hover:border-emerald-300 transition-all"
+                  >
+                    <span>View All Ingredients & Additive Details ({allIngredients.length} Items)</span>
+                    <ChevronRight className="w-4 h-4 text-emerald-600" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Complete Ingredients Pop-Up Modal */}
+            <UniversalModal
+              isOpen={isIngredientsModalOpen}
+              onClose={() => setIsIngredientsModalOpen(false)}
+              title="Full Ingredients & Additives Breakdown"
+              subtitle={`Complete list of all ${allIngredients.length} ingredients for ${product.name}`}
+              badge="INGREDIENT DOSSIER"
+              maxWidth="max-w-3xl"
+            >
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={ingredientSearch}
+                    onChange={(e) => setIngredientSearch(e.target.value)}
+                    placeholder="Search by ingredient name, INS code, or category..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                  {filteredIngredients.length > 0 ? (
+                    filteredIngredients.map((ing: any, i: number) => (
+                      <IngredientCard key={i} ingredient={ing} />
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-400 text-xs">
+                      No ingredients matching "{ingredientSearch}".
+                    </div>
+                  )}
+                </div>
+              </div>
+            </UniversalModal>
+          </>
+        );
+      })()}
+
+      {/* Nutrition Facts Preview + View Complete Panel Modal */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5 text-slate-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs uppercase tracking-wider font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Nutritional Profile
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">
+                Serving: <strong className="text-slate-800">{product.serving_size || '100g'}</strong>
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mt-1">Nutrition Quick Summary</h2>
+            <p className="text-xs text-slate-500">
+              Laboratory measured values against standard daily recommended ceilings.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              setIsNutritionModalOpen(true);
+            }}
+            className="py-2.5 px-5 rounded-2xl apple-pill-btn text-white text-xs font-bold flex items-center space-x-2 shadow-xs self-start sm:self-auto hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            <span>View Complete Nutrition Panel (See Details)</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* 4 Macro Quick Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Energy */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Energy</span>
+            <div className="text-xl font-black font-mono text-slate-900">
+              {product.nutrition_per_100g?.calories ?? '--'} <span className="text-xs font-normal text-slate-500">kcal</span>
+            </div>
+            <span className="text-[10px] text-slate-500 block">per 100g</span>
+          </div>
+
+          {/* Added Sugars */}
+          <div
+            className={`p-4 rounded-2xl border space-y-1 ${
+              (product.nutrition_per_100g?.added_sugar ?? 0) > 10
+                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                : (product.nutrition_per_100g?.added_sugar ?? 0) > 5
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-75 block">Added Sugar</span>
+            <div className="text-xl font-black font-mono">
+              {product.nutrition_per_100g?.added_sugar ?? product.nutrition_per_100g?.total_sugar ?? '--'}{' '}
+              <span className="text-xs font-normal">g</span>
+            </div>
+            <span className="text-[10px] font-semibold block">
+              {(product.nutrition_per_100g?.added_sugar ?? 0) > 10 ? '⚠️ High Concern' : '✓ Within Limit'}
+            </span>
+          </div>
+
+          {/* Sodium */}
+          <div
+            className={`p-4 rounded-2xl border space-y-1 ${
+              (product.nutrition_per_100g?.sodium ?? 0) > 600
+                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                : (product.nutrition_per_100g?.sodium ?? 0) > 300
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+            }`}
+          >
+            <span className="text-[10px] font-bold uppercase tracking-wider opacity-75 block">Sodium</span>
+            <div className="text-xl font-black font-mono">
+              {product.nutrition_per_100g?.sodium ?? '--'} <span className="text-xs font-normal">mg</span>
+            </div>
+            <span className="text-[10px] font-semibold block">
+              {(product.nutrition_per_100g?.sodium ?? 0) > 600 ? '⚠️ High Salt' : '✓ Normal'}
+            </span>
+          </div>
+
+          {/* Protein */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Protein</span>
+            <div className="text-xl font-black font-mono text-slate-900">
+              {product.nutrition_per_100g?.protein ?? '--'} <span className="text-xs font-normal text-slate-500">g</span>
+            </div>
+            <span className="text-[10px] text-slate-500 block">Clean macronutrient</span>
+          </div>
         </div>
       </div>
 
-      {/* Nutrition Facts */}
-      <NutritionTable
-        nutrition100g={product.nutrition_per_100g || {}}
-        nutritionServing={product.nutrition_per_serving}
-        servingSize={product.serving_size}
-        sourceConfidence={product.data_confidence}
-      />
+      {/* Complete Nutrition Panel Modal */}
+      <UniversalModal
+        isOpen={isNutritionModalOpen}
+        onClose={() => setIsNutritionModalOpen(false)}
+        title="Complete Nutrition Facts Panel"
+        subtitle={`${product.name} · Laboratory Reference Standards`}
+        badge="NUTRITIONAL MATRIX"
+        maxWidth="max-w-3xl"
+      >
+        <NutritionTable
+          nutrition100g={product.nutrition_per_100g || {}}
+          nutritionServing={product.nutrition_per_serving}
+          servingSize={product.serving_size}
+          sourceConfidence={product.data_confidence}
+        />
+      </UniversalModal>
 
       {/* Explainable Food Score Modal */}
       <ExplainableScoreModal
