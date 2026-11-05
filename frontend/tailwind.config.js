@@ -1,0 +1,83 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        dark: {
+          bg: '#f8fafc',
+          surface: '#ffffff',
+          card: '#ffffff',
+          cardHover: '#f8fafc',
+          border: '#e2e8f0',
+          borderLight: '#cbd5e1',
+          muted: '#64748b',
+          subtle: '#94a3b8',
+        },
+        brand: {
+          orange: '#059669',
+          carrot: '#10b981',
+          flame: '#047857',
+          mint: '#10b981',
+          emerald: '#059669',
+          blue: '#2563eb',
+          yellow: '#f59e0b',
+        },
+        charcoal: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
+        },
+        forest: {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#14532d',
+          950: '#052e16',
+          deep: '#064e3b',
+          darkest: '#022c22',
+        },
+        mint: {
+          50: '#f2fbf7',
+          100: '#e1f7ec',
+          200: '#c5eedb',
+          300: '#98dfc3',
+          400: '#64c8a5',
+          500: '#3caa89',
+          600: '#2c896d',
+          700: '#256e59',
+          800: '#215848',
+          900: '#1d483c',
+        },
+      },
+      fontFamily: {
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        'glow-orange': '0 0 25px -5px rgba(5, 150, 105, 0.3)',
+        'glow-mint': '0 0 25px -5px rgba(16, 185, 129, 0.3)',
+        'glow-emerald': '0 10px 30px -5px rgba(5, 150, 105, 0.25)',
+        'card-dark': '0 4px 20px -2px rgba(15, 23, 42, 0.06)',
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.05), 0 10px 20px -2px rgba(0, 0, 0, 0.03)',
+      }
+    },
+  },
+  plugins: [],
+}

@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="appleBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    
+    <!-- Emerald Apple Gradient -->
+    <linearGradient id="appleGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="45%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Leaf Gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+
+    <!-- Specular Glow Filter -->
+    <filter id="glassGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#059669" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer Rounded App Icon Container with Glossy Rim -->
+  <rect width="512" height="512" rx="128" fill="url(#appleBg)"/>
+  <rect width="504" height="504" x="4" y="4" rx="124" fill="none" stroke="#dcfce7" stroke-width="8"/>
+
+  <!-- Subtle Inspection Reticle Ring -->
+  <circle cx="256" cy="275" r="160" fill="none" stroke="#10b981" stroke-width="4" stroke-opacity="0.25" stroke-dasharray="14 10"/>
+
+  <!-- Leaf & Stem -->
+  <!-- Stem -->
+  <path d="M 252 140 C 250 100, 275 75, 295 65" fill="none" stroke="#047857" stroke-width="12" stroke-linecap="round"/>
+  <!-- Leaf -->
+  <path d="M 260 115 C 285 70, 340 75, 355 100 C 330 135, 280 135, 260 115 Z" fill="url(#leafGrad)"/>
+
+  <!-- Organic Food Apple Emblem -->
+  <path d="M 256 165 
+           C 285 135, 375 140, 395 210 
+           C 415 285, 365 395, 295 435 
+           C 275 446, 265 442, 256 438 
+           C 247 442, 237 446, 217 435 
+           C 147 395, 97 285, 117 210 
+           C 137 140, 227 135, 256 165 Z" 
+        fill="url(#appleGreen)" 
+        filter="url(#glassGlow)"/>
+
+  <!-- Apple Specular Top Reflection (macOS Gloss) -->
+  <path d="M 155 195 
+           C 180 160, 235 155, 256 175 
+           C 240 185, 175 190, 155 225 
+           C 152 215, 153 205, 155 195 Z" 
+        fill="#ffffff" 
+        fill-opacity="0.45"/>
+
+  <!-- Food Fork Silhouette Inside Apple (The Food Scanner Identity) -->
+  <!-- Fork Handle -->
+  <line x1="256" y1="380" x2="256" y2="280" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-opacity="0.95"/>
+  <!-- Fork Base -->
+  <path d="M 234 280 C 234 300, 278 300, 278 280" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-opacity="0.95"/>
+  <!-- Fork 3 Tines -->
+  <line x1="234" y1="280" x2="234" y2="225" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.95"/>
+  <line x1="256" y1="280" x2="256" y2="220" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.95"/>
+  <line x1="278" y1="280" x2="278" y2="225" stroke="#ffffff" stroke-width="10" stroke-linecap="round" stroke-opacity="0.95"/>
+</svg>
