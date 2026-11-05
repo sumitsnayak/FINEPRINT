@@ -3,8 +3,10 @@ import { api } from '../services/api';
 import { ScoreBadge } from '../components/ScoreBadge';
 import { NutritionTable } from '../components/NutritionTable';
 import { IngredientCard } from '../components/IngredientCard';
+import { ExplainableScoreModal } from '../components/ExplainableScoreModal';
 import { useScan } from '../context/ScanContext';
-import { ArrowLeft, Calendar, Scale, Sparkles, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, Scale, Sparkles, Check, HelpCircle } from 'lucide-react';
+import { sounds } from '../utils/soundEffects';
 
 interface ProductDetailsPageProps {
   productId: number;
@@ -21,6 +23,7 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [logged, setLogged] = useState(false);
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
   const { addToCompare } = useScan();
 
   useEffect(() => {
@@ -103,7 +106,21 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({
           </p>
 
           <div className="pt-2 flex items-center space-x-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 w-fit">
-            <ScoreBadge score={product.overall_score} size="ring" />
+            <div className="flex flex-col items-center">
+              <ScoreBadge score={product.overall_score} size="ring" />
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setIsExplainModalOpen(true);
+                }}
+                className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold mac-secondary-btn hover:text-emerald-700 text-slate-700 transition-all shadow-xs"
+                title="Explain how this score was calculated"
+              >
+                <HelpCircle className="w-3 h-3 text-emerald-600" />
+                <span>Explain This Score</span>
+              </button>
+            </div>
             <div className="text-xs text-slate-600 space-y-1">
               <div>Safety Score: <strong className="font-mono text-slate-900">{product.safety_score}/10</strong></div>
               <div>Nutritional Quality: <strong className="font-mono text-slate-900">{product.nutrition_score}/10</strong></div>
@@ -188,6 +205,13 @@ export const ProductDetailsPage: React.FC<ProductDetailsPageProps> = ({
         nutritionServing={product.nutrition_per_serving}
         servingSize={product.serving_size}
         sourceConfidence={product.data_confidence}
+      />
+
+      {/* Explainable Food Score Modal */}
+      <ExplainableScoreModal
+        isOpen={isExplainModalOpen}
+        onClose={() => setIsExplainModalOpen(false)}
+        product={product}
       />
     </div>
   );

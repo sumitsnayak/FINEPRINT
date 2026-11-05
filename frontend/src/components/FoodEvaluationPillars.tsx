@@ -443,3 +443,4 @@ export const FoodEvaluationPillars: React.FC<FoodEvaluationPillarsProps> = ({
     </section>
   );
 };
+

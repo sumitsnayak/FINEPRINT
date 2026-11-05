@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   ShieldCheck,
@@ -8,8 +8,10 @@ import {
   ChevronRight,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
+import { ExplainableScoreModal } from './ExplainableScoreModal';
 import { sounds } from '../utils/soundEffects';
 
 interface FoodScanResultModalProps {
@@ -27,6 +29,8 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
   onViewDetails,
   onViewAlternatives,
 }) => {
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+
   if (!isOpen || !result) return null;
 
   // Calculate score (can be overall_score or score or overall_rating)
@@ -181,6 +185,18 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
             <p className="text-xs text-slate-600 mt-1 leading-snug">
               {theme.sublabel}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setIsExplainModalOpen(true);
+              }}
+              className="mt-2 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/95 border border-slate-200/80 hover:border-emerald-300 text-slate-700 hover:text-emerald-800 transition-all shadow-xs"
+              title="Explain how this score was calculated"
+            >
+              <HelpCircle className="w-3 h-3 text-emerald-600" />
+              <span>Explain This Score</span>
+            </button>
           </div>
         </div>
 
@@ -312,6 +328,13 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Explainable Food Score Modal */}
+      <ExplainableScoreModal
+        isOpen={isExplainModalOpen}
+        onClose={() => setIsExplainModalOpen(false)}
+        product={result}
+      />
     </div>
   );
 };

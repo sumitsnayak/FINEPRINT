@@ -4,6 +4,7 @@ import { ScoreBadge } from '../components/ScoreBadge';
 import { AllergenAlert } from '../components/AllergenAlert';
 import { IngredientCard } from '../components/IngredientCard';
 import { NutritionTable } from '../components/NutritionTable';
+import { ExplainableScoreModal } from '../components/ExplainableScoreModal';
 import { useScan } from '../context/ScanContext';
 import { api } from '../services/api';
 import {
@@ -13,8 +14,10 @@ import {
   Scale,
   CheckCircle,
   AlertTriangle,
-  Check
+  Check,
+  HelpCircle
 } from 'lucide-react';
+import { sounds } from '../utils/soundEffects';
 
 interface ScanResultsPageProps {
   scanResult: ScanResult;
@@ -29,6 +32,7 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
   const { addToCompare } = useScan();
   const [saved, setSaved] = useState(false);
   const [loggedToDiary, setLoggedToDiary] = useState(false);
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
 
   const handleSave = async () => {
     if (scanResult.scan_id) {
@@ -93,11 +97,23 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
 
           {/* Scores Overview */}
           <div className="flex items-center space-x-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div className="text-center pr-4 border-r border-slate-200">
+            <div className="text-center pr-4 border-r border-slate-200 flex flex-col items-center">
               <span className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
                 Overall Score
               </span>
               <ScoreBadge score={scanResult.overall_score} size="ring" />
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setIsExplainModalOpen(true);
+                }}
+                className="mt-2.5 inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold mac-secondary-btn hover:text-emerald-700 text-slate-700 transition-all shadow-xs"
+                title="Explain this food rating"
+              >
+                <HelpCircle className="w-3 h-3 text-emerald-600" />
+                <span>Explain This Score</span>
+              </button>
             </div>
 
             <div className="space-y-1.5 text-xs">
@@ -336,6 +352,13 @@ export const ScanResultsPage: React.FC<ScanResultsPageProps> = ({
           </div>
         </div>
       )}
+
+      {/* Explainable Food Score Modal */}
+      <ExplainableScoreModal
+        isOpen={isExplainModalOpen}
+        onClose={() => setIsExplainModalOpen(false)}
+        product={scanResult}
+      />
     </div>
   );
 };

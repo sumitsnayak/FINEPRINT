@@ -67,6 +67,21 @@ export const api = {
     return res.data;
   },
 
+  async explainScore(payload: {
+    product_name: string;
+    overall_score: number;
+    safety_score?: number;
+    nutrition_score?: number;
+    concern_level?: string;
+    nutrition_facts?: Record<string, any>;
+    ingredient_analysis?: any;
+    fssai_license?: string | null;
+    processing_level?: string | null;
+  }): Promise<any> {
+    const res = await apiClient.post('/scan/explain-score', payload);
+    return res.data;
+  },
+
   async getScanHistory(): Promise<any[]> {
     const res = await apiClient.get('/scan/history');
     return res.data;

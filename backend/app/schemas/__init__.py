@@ -51,6 +51,17 @@ class AnalyzeTextRequest(BaseModel):
     nutrition_facts: Optional[Dict[str, float]] = None
     fssai_license: Optional[str] = None
 
+class ExplainScoreRequest(BaseModel):
+    product_name: str
+    overall_score: float
+    safety_score: Optional[float] = None
+    nutrition_score: Optional[float] = None
+    concern_level: Optional[str] = None
+    nutrition_facts: Optional[Dict[str, Any]] = None
+    ingredient_analysis: Optional[Dict[str, Any]] = None
+    fssai_license: Optional[str] = None
+    processing_level: Optional[str] = None
+
 # Diary Schemas
 class MealEntryCreate(BaseModel):
     meal_type: str # breakfast, lunch, dinner, snack

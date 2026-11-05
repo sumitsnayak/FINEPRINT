@@ -586,3 +586,4 @@ export const DailyHealthAdoptionGuide: React.FC = () => {
     </section>
   );
 };
+

@@ -14,10 +14,11 @@ from app.database import get_db
 from app.models.user import User, UserProfile
 from app.models.scan import ScanHistory
 from app.models.product import Product
-from app.schemas import AnalyzeTextRequest
+from app.schemas import AnalyzeTextRequest, ExplainScoreRequest
 from app.services.auth_service import get_current_user_optional
 from app.services.ocr_service import extract_text_from_image
-from app.services.ai_service import analyze_label_ai
+from app.services.ai_service import analyze_label_ai, explain_score_with_ai
+from app.services.rating_engine import explain_product_score
 from app.services.recommendation_engine import find_healthier_alternatives
 
 router = APIRouter(prefix="/api/scan", tags=["Scanner & OCR"])
@@ -106,6 +107,27 @@ async def analyze_label(
     
     report["scan_id"] = scan_entry.id
     return report
+
+@router.post("/explain-score")
+async def explain_score_endpoint(payload: ExplainScoreRequest):
+    """
+    Step 3: On-Demand Explainable Food Score.
+    Generates deterministic evidence, breakdowns, and scoring methodology,
+    accompanied by Google Gemini's plain-language consumer explanation.
+    """
+    deterministic_breakdown = explain_product_score(
+        product_name=payload.product_name,
+        overall_score=payload.overall_score,
+        safety_score=payload.safety_score,
+        nutrition_score=payload.nutrition_score,
+        concern_level=payload.concern_level,
+        nutrition_facts=payload.nutrition_facts,
+        ingredient_analysis=payload.ingredient_analysis,
+        fssai_license=payload.fssai_license,
+        processing_level=payload.processing_level
+    )
+    full_explanation = await explain_score_with_ai(deterministic_breakdown)
+    return full_explanation
 
 @router.get("/history")
 def get_scan_history(

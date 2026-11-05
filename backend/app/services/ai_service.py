@@ -138,6 +138,63 @@ async def analyze_label_ai(
         "fssai_license": fssai_license
     }
 
+async def explain_score_with_ai(breakdown: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Takes a deterministic score breakdown and uses Google Gemini to generate
+    a clear, understandable, consumer-friendly narrative.
+    Gemini is strictly prohibited from altering scores or inventing ingredient facts.
+    """
+    product_name = breakdown.get("product_name", "Scanned Product")
+    overall_score = breakdown.get("overall_score", 5.0)
+    safety_score = breakdown.get("safety_score", 5.0)
+    nutrition_score = breakdown.get("nutrition_score", 5.0)
+    positive_factors = breakdown.get("positive_factors", [])
+    potential_concerns = breakdown.get("potential_concerns", [])
+    missing_info = breakdown.get("missing_information", [])
+    processing = breakdown.get("processing_information", {}).get("description", "Processing information unavailable.")
+
+    prompt = f"""
+    Convert this verified, deterministic food evaluation into an easy-to-understand explanation for an everyday consumer.
+
+    PRODUCT: {product_name}
+    OVERALL RATING: {overall_score} / 10
+    SAFETY SCORE (45% weight): {safety_score} / 10
+    NUTRITION SCORE (55% weight): {nutrition_score} / 10
+    POSITIVE FACTORS: {json.dumps(positive_factors)}
+    POTENTIAL CONCERNS: {json.dumps(potential_concerns)}
+    MISSING/UNVERIFIED INFORMATION: {json.dumps(missing_info)}
+    PROCESSING STATUS: {processing}
+
+    RULES:
+    1. Do NOT change, alter, or re-calculate any numerical score.
+    2. Do NOT invent or speculate about ingredients or hazards not listed above.
+    3. Do NOT claim the product is poisonous or toxic solely because an additive was flagged.
+    4. Provide 2-3 concise paragraphs in friendly, objective, supportive language.
+    5. Highlight why the score ended up at {overall_score}/10 based on positive and concerning factors.
+    """
+
+    ai_text = await query_gemini_api(prompt, "You are FinePrint's Explainable Food Score Assistant. You provide objective, scientifically grounded explanations of food ratings.")
+    
+    if ai_text:
+        breakdown["ai_explanation"] = ai_text.strip()
+        breakdown["explanation_source"] = "Google Gemini 1.5 Flash (Verified Translation)"
+        breakdown["is_ai_live"] = True
+    else:
+        # Fallback deterministic summary
+        concerns_text = "; ".join(potential_concerns[:3]) if potential_concerns else "No major red flags detected."
+        positives_text = "; ".join(positive_factors[:2]) if positive_factors else "Standard packaged food baseline."
+        missing_text = f" Note that {missing_info[0].lower()}" if missing_info else ""
+        
+        breakdown["ai_explanation"] = (
+            f"**{product_name}** received an overall score of **{overall_score}/10** based on FinePrint's dual-vector safety and nutritional framework.\n\n"
+            f"**Key Drivers:** On the positive side, {positives_text.lower()} However, the score reflects deductions for: {concerns_text.lower()}{missing_text}.\n\n"
+            f"This rating is designed to guide balanced dietary choices according to Indian ICMR-NIN recommendations."
+        )
+        breakdown["explanation_source"] = "FinePrint Deterministic Rules Engine (Offline Mode)"
+        breakdown["is_ai_live"] = False
+
+    return breakdown
+
 async def answer_assistant_chat(
     user_message: str,
     history: List[Dict[str, str]],
