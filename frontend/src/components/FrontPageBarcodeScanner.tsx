@@ -9,7 +9,8 @@ import {
   Sparkles,
   Search,
   X,
-  ScanLine
+  ScanLine,
+  CameraOff
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CameraScanner } from './CameraScanner';
@@ -313,24 +314,70 @@ export const FrontPageBarcodeScanner: React.FC<FrontPageBarcodeScannerProps> = (
 
         {/* Tab 2: Live Camera Viewfinder */}
         {activeMode === 'camera' && (
-          <div className="relative z-10 animate-in fade-in duration-200">
+          <div className="relative z-10 animate-in fade-in duration-200 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <span className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live Optical Scanner Active</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveMode('barcode');
+                }}
+                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border border-rose-200 text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                title="Turn off camera lens"
+              >
+                <CameraOff className="w-3.5 h-3.5 text-rose-600" />
+                <span>Turn Off Lens</span>
+              </button>
+            </div>
+
             <CameraScanner
               initialMode="barcode"
               hideHeader={true}
               onBarcodeFound={handleCameraBarcodeFound}
               onOcrComplete={handleOcrExtracted}
+              onClose={() => {
+                sounds.playClick();
+                setActiveMode('barcode');
+              }}
             />
           </div>
         )}
 
         {/* Tab 3: Upload Food Packaging Photo */}
         {activeMode === 'upload' && (
-          <div className="relative z-10 animate-in fade-in duration-200">
+          <div className="relative z-10 animate-in fade-in duration-200 space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold text-slate-700">
+                Upload Food Packaging Image
+              </span>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveMode('barcode');
+                }}
+                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Back to Barcode</span>
+              </button>
+            </div>
+
             <CameraScanner
               initialMode="upload"
               hideHeader={true}
               onBarcodeFound={handleCameraBarcodeFound}
               onOcrComplete={handleOcrExtracted}
+              onClose={() => {
+                sounds.playClick();
+                setActiveMode('barcode');
+              }}
             />
           </div>
         )}

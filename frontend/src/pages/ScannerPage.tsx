@@ -17,6 +17,7 @@ interface ScannerPageProps {
 
 export const ScannerPage: React.FC<ScannerPageProps> = ({
   onScanCompleted,
+  onNavigate,
 }) => {
   const { setActiveScan } = useScan();
 
@@ -124,6 +125,7 @@ export const ScannerPage: React.FC<ScannerPageProps> = ({
         <CameraScanner
           onOcrComplete={handleOcrExtracted}
           onBarcodeFound={handleBarcodeSearch}
+          onClose={() => onNavigate('landing')}
         />
       ) : (
         /* Review & Correct OCR Extraction Panel */

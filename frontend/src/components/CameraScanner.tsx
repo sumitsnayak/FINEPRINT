@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Barcode, RefreshCw, Sparkles, SwitchCamera, Zap } from 'lucide-react';
+import { Camera, Upload, Barcode, RefreshCw, Sparkles, SwitchCamera, Zap, CameraOff, X } from 'lucide-react';
 import { api } from '../services/api';
 import { Html5Qrcode } from 'html5-qrcode';
 import { sounds } from '../utils/soundEffects';
@@ -9,6 +9,7 @@ interface CameraScannerProps {
   onBarcodeFound: (barcode: string) => void;
   initialMode?: 'label' | 'barcode' | 'upload';
   hideHeader?: boolean;
+  onClose?: () => void;
 }
 
 export const CameraScanner: React.FC<CameraScannerProps> = ({
@@ -16,6 +17,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   onBarcodeFound,
   initialMode = 'label',
   hideHeader = false,
+  onClose,
 }) => {
   const [scanMode, setScanMode] = useState<'label' | 'barcode' | 'upload'>(initialMode);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
@@ -83,6 +85,14 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
       barcodeScannerRef.current = null;
     }
     setIsCameraActive(false);
+  };
+
+  const handleTurnOffCamera = () => {
+    sounds.playClick();
+    stopCamera();
+    if (onClose) {
+      onClose();
+    }
   };
 
   useEffect(() => {
@@ -334,16 +344,28 @@ FSSAI Lic. No. 10012011000168`;
                   </div>
                 </div>
 
-                {/* Floating Controls: Flip Camera & Capture */}
-                <div className="absolute top-4 right-4 flex items-center space-x-2">
+                {/* Floating Controls: Flip Camera & Quick Lens Off */}
+                <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
                   <button
                     type="button"
                     onClick={flipCamera}
-                    className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all shadow-md"
+                    className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all shadow-md cursor-pointer"
                     title="Flip camera (front / rear)"
                   >
                     <SwitchCamera className="w-4 h-4" />
                   </button>
+                  {onClose && (
+                    <button
+                      type="button"
+                      onClick={handleTurnOffCamera}
+                      className="h-10 px-3 rounded-full bg-black/75 hover:bg-rose-950/90 text-rose-300 hover:text-white backdrop-blur-md border border-rose-500/50 hover:border-rose-400 flex items-center space-x-1.5 transition-all shadow-md cursor-pointer text-xs font-bold"
+                      title="Turn off camera lens"
+                      aria-label="Turn off camera lens"
+                    >
+                      <CameraOff className="w-4 h-4 text-rose-400" />
+                      <span className="text-[11px] font-bold">Lens Off</span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center">
@@ -371,14 +393,26 @@ FSSAI Lic. No. 10012011000168`;
                     {cameraError || 'Allow camera permission or test instantly with verified sample foods below.'}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => startCamera(facingMode)}
-                  className="px-6 py-3 apple-pill-btn text-white rounded-2xl text-xs font-bold inline-flex items-center space-x-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Start Camera</span>
-                </button>
+                <div className="flex items-center justify-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => startCamera(facingMode)}
+                    className="px-6 py-3 apple-pill-btn text-white rounded-2xl text-xs font-bold inline-flex items-center space-x-2 cursor-pointer"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Start Camera</span>
+                  </button>
+                  {onClose && (
+                    <button
+                      type="button"
+                      onClick={handleTurnOffCamera}
+                      className="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer"
+                    >
+                      <CameraOff className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Back to Barcode</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -390,6 +424,20 @@ FSSAI Lic. No. 10012011000168`;
             <div className="absolute top-4 text-center z-10 bg-black/80 px-4 py-1.5 rounded-full text-xs text-emerald-300 border border-emerald-500/30">
               Point camera at packaging 13-digit EAN barcode
             </div>
+
+            {/* Quick Lens Off / Close Button */}
+            {onClose && (
+              <button
+                type="button"
+                onClick={handleTurnOffCamera}
+                className="absolute top-3 right-3 z-30 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-rose-950/90 text-rose-300 hover:text-white border border-rose-500/50 hover:border-rose-400 backdrop-blur-md shadow-lg transition-all hover:scale-105 active:scale-95 text-xs font-bold cursor-pointer group"
+                title="Turn off camera lens"
+                aria-label="Turn off camera lens"
+              >
+                <CameraOff className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-200" />
+                <span className="text-[11px] font-bold">Lens Off</span>
+              </button>
+            )}
           </div>
         )}
 
