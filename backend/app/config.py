@@ -15,7 +15,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7 # 7 days
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/labellens.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{'/tmp' if os.getenv('VERCEL') else BASE_DIR}/labellens.db"
+    )
     
     # Supabase (optional live config)
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
@@ -31,7 +34,10 @@ class Settings(BaseSettings):
     TESSERACT_CMD: str = os.getenv("TESSERACT_CMD", "")
     
     # Storage
-    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", str(BASE_DIR / "uploads"))
+    UPLOAD_DIR: str = os.getenv(
+        "UPLOAD_DIR",
+        "/tmp/uploads" if os.getenv("VERCEL") else str(BASE_DIR / "uploads")
+    )
     
     # CORS
     CORS_ORIGINS: list = [
