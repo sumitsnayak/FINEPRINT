@@ -23,7 +23,8 @@ interface FrontPageBarcodeScannerProps {
 export const FrontPageBarcodeScanner: React.FC<FrontPageBarcodeScannerProps> = ({
   onScanResult,
 }) => {
-  const [activeMode, setActiveMode] = useState<'camera' | 'barcode' | 'upload'>('barcode');
+  const [activeMode, setActiveMode] = useState<'camera' | 'barcode' | 'upload'>('camera');
+  const [isLensPaused, setIsLensPaused] = useState<boolean>(false);
   const [barcodeInput, setBarcodeInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -317,33 +318,50 @@ export const FrontPageBarcodeScanner: React.FC<FrontPageBarcodeScannerProps> = (
           <div className="relative z-10 animate-in fade-in duration-200 space-y-3">
             <div className="flex items-center justify-between px-1">
               <span className="flex items-center space-x-1.5 text-xs font-bold text-slate-700">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Live Optical Scanner Active</span>
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isLensPaused ? 'bg-amber-400' : 'bg-emerald-500 animate-pulse'
+                  }`}
+                />
+                <span>{isLensPaused ? 'Live Lens Turned Off (Paused)' : 'Live Optical Scanner Active'}</span>
               </span>
 
-              <button
-                type="button"
-                onClick={() => {
-                  sounds.playClick();
-                  setActiveMode('barcode');
-                }}
-                className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border border-rose-200 text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-105 active:scale-95"
-                title="Turn off camera lens"
-              >
-                <CameraOff className="w-3.5 h-3.5 text-rose-600" />
-                <span>Turn Off Lens</span>
-              </button>
+              {isLensPaused ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    setIsLensPaused(false);
+                  }}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 border border-emerald-300 text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                  title="Turn on camera lens"
+                >
+                  <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Turn On Lens</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick();
+                    setIsLensPaused(true);
+                  }}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-900 border border-rose-200 text-xs font-bold transition-all shadow-xs cursor-pointer hover:scale-105 active:scale-95"
+                  title="Turn off camera lens"
+                >
+                  <CameraOff className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Turn Off Lens</span>
+                </button>
+              )}
             </div>
 
             <CameraScanner
               initialMode="barcode"
               hideHeader={true}
+              isLensPaused={isLensPaused}
+              onLensPausedChange={setIsLensPaused}
               onBarcodeFound={handleCameraBarcodeFound}
               onOcrComplete={handleOcrExtracted}
-              onClose={() => {
-                sounds.playClick();
-                setActiveMode('barcode');
-              }}
             />
           </div>
         )}

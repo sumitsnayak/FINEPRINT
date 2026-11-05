@@ -10,6 +10,8 @@ interface CameraScannerProps {
   initialMode?: 'label' | 'barcode' | 'upload';
   hideHeader?: boolean;
   onClose?: () => void;
+  isLensPaused?: boolean;
+  onLensPausedChange?: (paused: boolean) => void;
 }
 
 export const CameraScanner: React.FC<CameraScannerProps> = ({
@@ -18,9 +20,21 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   initialMode = 'label',
   hideHeader = false,
   onClose,
+  isLensPaused: isLensPausedProp,
+  onLensPausedChange,
 }) => {
   const [scanMode, setScanMode] = useState<'label' | 'barcode' | 'upload'>(initialMode);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [internalLensPaused, setInternalLensPaused] = useState<boolean>(false);
+  const isPaused = isLensPausedProp !== undefined ? isLensPausedProp : internalLensPaused;
+
+  const setPaused = (paused: boolean) => {
+    if (onLensPausedChange) {
+      onLensPausedChange(paused);
+    } else {
+      setInternalLensPaused(paused);
+    }
+  };
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -90,12 +104,15 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
   const handleTurnOffCamera = () => {
     sounds.playClick();
     stopCamera();
-    if (onClose) {
-      onClose();
-    }
+    setPaused(true);
   };
 
   useEffect(() => {
+    if (isPaused) {
+      stopCamera();
+      return;
+    }
+
     if (scanMode === 'label') {
       startCamera(facingMode);
     } else if (scanMode === 'barcode') {
@@ -106,7 +123,7 @@ export const CameraScanner: React.FC<CameraScannerProps> = ({
     return () => {
       stopCamera();
     };
-  }, [scanMode]);
+  }, [scanMode, isPaused]);
 
   const startBarcodeScanner = async () => {
     stopCamera();
@@ -315,46 +332,71 @@ FSSAI Lic. No. 10012011000168`;
       {/* Main View Area */}
       <div className={hideHeader ? '' : 'pt-2'}>
         {scanMode === 'label' && (
-          <div className="relative aspect-[4/3] sm:aspect-video bg-slate-900 rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-200">
-            {isCameraActive ? (
-              <>
-                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+          isPaused ? (
+            <div className="relative aspect-[4/3] sm:aspect-video bg-slate-950 rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-800 p-6 text-center space-y-3.5 animate-in fade-in duration-200">
+              <div className="w-16 h-16 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 shadow-inner">
+                <CameraOff className="w-8 h-8 text-rose-400" />
+              </div>
 
-                {/* Animated Holographic Laser Scanning Line */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  <div
-                    className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-pulse"
-                    style={{
-                      animation: 'bounce 2.5s infinite alternate ease-in-out'
-                    }}
-                  />
-                </div>
+              <div className="space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-white">Live Camera Lens Turned Off</h4>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                  Camera hardware stream is paused. Click below to resume scanning.
+                </p>
+              </div>
 
-                {/* Camera Viewfinder Overlay */}
-                <div className="absolute inset-8 sm:inset-12 border-2 border-emerald-400/90 rounded-2xl pointer-events-none flex flex-col justify-between p-4 shadow-[inset_0_0_20px_rgba(16,185,129,0.25)]">
-                  <div className="flex justify-between items-center text-emerald-300 text-[10px] font-mono font-bold">
-                    <span className="bg-black/60 px-2.5 py-0.5 rounded backdrop-blur-sm">[ ALIGN INGREDIENT LIST ]</span>
-                    <span className="flex items-center space-x-1 bg-emerald-500/30 text-white px-2.5 py-0.5 rounded backdrop-blur-sm">
-                      <Zap className="w-3 h-3 text-emerald-300" />
-                      <span>FSSAI OCR</span>
-                    </span>
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setPaused(false);
+                }}
+                className="px-6 py-2.5 rounded-full apple-pill-btn text-white text-xs font-bold inline-flex items-center space-x-2 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Turn On Lens</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative aspect-[4/3] sm:aspect-video bg-slate-900 rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-200">
+              {isCameraActive ? (
+                <>
+                  <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+
+                  {/* Animated Holographic Laser Scanning Line */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div
+                      className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-pulse"
+                      style={{
+                        animation: 'bounce 2.5s infinite alternate ease-in-out'
+                      }}
+                    />
                   </div>
-                  <div className="text-center text-[11px] text-white/90 bg-black/75 py-1 px-4 rounded-full backdrop-blur-md self-center border border-white/10">
-                    Hold steady under clear lighting
-                  </div>
-                </div>
 
-                {/* Floating Controls: Flip Camera & Quick Lens Off */}
-                <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
-                  <button
-                    type="button"
-                    onClick={flipCamera}
-                    className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all shadow-md cursor-pointer"
-                    title="Flip camera (front / rear)"
-                  >
-                    <SwitchCamera className="w-4 h-4" />
-                  </button>
-                  {onClose && (
+                  {/* Camera Viewfinder Overlay */}
+                  <div className="absolute inset-8 sm:inset-12 border-2 border-emerald-400/90 rounded-2xl pointer-events-none flex flex-col justify-between p-4 shadow-[inset_0_0_20px_rgba(16,185,129,0.25)]">
+                    <div className="flex justify-between items-center text-emerald-300 text-[10px] font-mono font-bold">
+                      <span className="bg-black/60 px-2.5 py-0.5 rounded backdrop-blur-sm">[ ALIGN INGREDIENT LIST ]</span>
+                      <span className="flex items-center space-x-1 bg-emerald-500/30 text-white px-2.5 py-0.5 rounded backdrop-blur-sm">
+                        <Zap className="w-3 h-3 text-emerald-300" />
+                        <span>FSSAI OCR</span>
+                      </span>
+                    </div>
+                    <div className="text-center text-[11px] text-white/90 bg-black/75 py-1 px-4 rounded-full backdrop-blur-md self-center border border-white/10">
+                      Hold steady under clear lighting
+                    </div>
+                  </div>
+
+                  {/* Floating Controls: Flip Camera & Quick Lens Off */}
+                  <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
+                    <button
+                      type="button"
+                      onClick={flipCamera}
+                      className="w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 flex items-center justify-center text-white transition-all shadow-md cursor-pointer"
+                      title="Flip camera (front / rear)"
+                    >
+                      <SwitchCamera className="w-4 h-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={handleTurnOffCamera}
@@ -363,70 +405,85 @@ FSSAI Lic. No. 10012011000168`;
                       aria-label="Turn off camera lens"
                     >
                       <CameraOff className="w-4 h-4 text-rose-400" />
-                      <span className="text-[11px] font-bold">Lens Off</span>
+                      <span className="text-[11px] font-bold">Turn Off Lens</span>
                     </button>
-                  )}
-                </div>
+                  </div>
 
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={capturePhoto}
-                    disabled={isProcessing}
-                    className="w-16 h-16 rounded-full border-4 border-white/90 p-1 bg-white/20 backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/50"
-                    title="Capture photo and analyze ingredients"
-                  >
-                    <div className="w-full h-full rounded-full bg-emerald-500 flex items-center justify-center">
-                      <Camera className="w-6 h-6 text-white" />
-                    </div>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="p-8 text-center max-w-sm space-y-4">
-                <div className="w-14 h-14 rounded-3xl bg-slate-800 text-emerald-400 mx-auto flex items-center justify-center shadow-md">
-                  <Camera className="w-7 h-7" />
-                </div>
-                <div>
-                  <h4 className="font-black text-white mb-1 text-base">Camera Stream Ready</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {cameraError || 'Allow camera permission or test instantly with verified sample foods below.'}
-                  </p>
-                </div>
-                <div className="flex items-center justify-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => startCamera(facingMode)}
-                    className="px-6 py-3 apple-pill-btn text-white rounded-2xl text-xs font-bold inline-flex items-center space-x-2 cursor-pointer"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <span>Start Camera</span>
-                  </button>
-                  {onClose && (
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center">
                     <button
                       type="button"
-                      onClick={handleTurnOffCamera}
-                      className="px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold inline-flex items-center space-x-1.5 cursor-pointer"
+                      onClick={capturePhoto}
+                      disabled={isProcessing}
+                      className="w-16 h-16 rounded-full border-4 border-white/90 p-1 bg-white/20 backdrop-blur-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/50 cursor-pointer"
+                      title="Capture photo and analyze ingredients"
                     >
-                      <CameraOff className="w-3.5 h-3.5 text-rose-400" />
-                      <span>Back to Barcode</span>
+                      <div className="w-full h-full rounded-full bg-emerald-500 flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-white" />
+                      </div>
                     </button>
-                  )}
+                  </div>
+                </>
+              ) : (
+                <div className="p-8 text-center max-w-sm space-y-4">
+                  <div className="w-14 h-14 rounded-3xl bg-slate-800 text-emerald-400 mx-auto flex items-center justify-center shadow-md">
+                    <Camera className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-white mb-1 text-base">Camera Stream Ready</h4>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {cameraError || 'Allow camera permission or test instantly with verified sample foods below.'}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => startCamera(facingMode)}
+                      className="px-6 py-3 apple-pill-btn text-white rounded-2xl text-xs font-bold inline-flex items-center space-x-2 cursor-pointer"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      <span>Start Camera</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )
         )}
 
         {scanMode === 'barcode' && (
-          <div className="relative aspect-[4/3] sm:aspect-video bg-black rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-800">
-            <div id="barcode-reader" className="w-full h-full" />
-            <div className="absolute top-4 text-center z-10 bg-black/80 px-4 py-1.5 rounded-full text-xs text-emerald-300 border border-emerald-500/30">
-              Point camera at packaging 13-digit EAN barcode
-            </div>
+          isPaused ? (
+            <div className="relative aspect-[4/3] sm:aspect-video bg-slate-950 rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-800 p-6 text-center space-y-3.5 animate-in fade-in duration-200">
+              <div className="w-16 h-16 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 shadow-inner">
+                <CameraOff className="w-8 h-8 text-rose-400" />
+              </div>
 
-            {/* Quick Lens Off / Close Button */}
-            {onClose && (
+              <div className="space-y-1">
+                <h4 className="font-black text-sm sm:text-base text-white">Live Camera Lens Turned Off</h4>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                  Camera hardware stream is paused. Click below to resume scanning food barcodes.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setPaused(false);
+                }}
+                className="px-6 py-2.5 rounded-full apple-pill-btn text-white text-xs font-bold inline-flex items-center space-x-2 shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Turn On Lens</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative aspect-[4/3] sm:aspect-video bg-black rounded-3xl overflow-hidden flex flex-col items-center justify-center text-white border border-slate-800 animate-in fade-in duration-200">
+              <div id="barcode-reader" className="w-full h-full" />
+              <div className="absolute top-4 text-center z-10 bg-black/80 px-4 py-1.5 rounded-full text-xs text-emerald-300 border border-emerald-500/30">
+                Point camera at packaging 13-digit EAN barcode
+              </div>
+
+              {/* Quick Lens Off / Close Button */}
               <button
                 type="button"
                 onClick={handleTurnOffCamera}
@@ -435,10 +492,10 @@ FSSAI Lic. No. 10012011000168`;
                 aria-label="Turn off camera lens"
               >
                 <CameraOff className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-200" />
-                <span className="text-[11px] font-bold">Lens Off</span>
+                <span className="text-[11px] font-bold">Turn Off Lens</span>
               </button>
-            )}
-          </div>
+            </div>
+          )
         )}
 
         {scanMode === 'upload' && (
