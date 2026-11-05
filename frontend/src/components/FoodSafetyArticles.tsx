@@ -346,9 +346,9 @@ export const FoodSafetyArticles: React.FC = () => {
             <button
               type="button"
               onClick={handleNext}
-              className="py-1.5 px-3.5 rounded-full apple-pill-btn text-white text-xs font-bold flex items-center space-x-1 shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition-all"
+              className="py-1.5 px-4 rounded-full apple-pill-btn text-white text-xs font-bold flex items-center space-x-1.5 shadow-xs cursor-pointer hover:scale-105 active:scale-95 transition-all"
             >
-              <span>Next Story</span>
+              <span>Next</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -359,13 +359,13 @@ export const FoodSafetyArticles: React.FC = () => {
         </div>
       )}
 
-      {/* Comprehensive Food Safety Article Pop-Up Modal */}
+      {/* Comprehensive Food Safety Article Pop-Up Modal (Real Image Story News) */}
       {activeArticle && (
         <UniversalModal
           isOpen={Boolean(activeArticle)}
           onClose={() => setActiveArticle(null)}
-          title={activeArticle.title}
-          subtitle={`Published by ${activeArticle.source} · ${activeArticle.published_at}`}
+          title="Food Safety Investigation"
+          subtitle={`By ${activeArticle.source} · ${activeArticle.published_at}`}
           badge={activeArticle.category_label.toUpperCase()}
           icon={<Globe2 className="w-5 h-5 text-emerald-600" />}
           maxWidth="max-w-2xl"
@@ -376,7 +376,7 @@ export const FoodSafetyArticles: React.FC = () => {
                   href={activeArticle.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full sm:w-auto py-2 px-4 rounded-2xl mac-secondary-btn text-emerald-800 text-xs font-bold inline-flex items-center justify-center space-x-1.5 hover:text-emerald-900 shadow-xs"
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-2xl mac-secondary-btn text-emerald-800 text-xs font-bold inline-flex items-center justify-center space-x-1.5 hover:text-emerald-900 shadow-xs cursor-pointer"
                 >
                   <span>Read Full Article on {activeArticle.source}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -388,48 +388,89 @@ export const FoodSafetyArticles: React.FC = () => {
                   sounds.playClick();
                   setActiveArticle(null);
                 }}
-                className="w-full sm:w-auto py-2 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold"
+                className="w-full sm:w-auto py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold cursor-pointer"
               >
-                Close Brief
+                Close Story
               </button>
             </div>
           }
         >
           <div className="space-y-4">
-            {/* Stat Callout Banner */}
-            <div className="p-4 rounded-3xl bg-emerald-50/80 border border-emerald-200/90 flex items-center space-x-3.5">
-              <div className="px-3 py-2 rounded-2xl bg-emerald-600 text-white font-mono font-black text-sm shadow-sm flex-shrink-0">
+            {/* Real Image Story Hero Banner */}
+            <div className="relative w-full h-56 sm:h-64 rounded-3xl overflow-hidden shadow-lg border border-slate-200">
+              <img
+                src={activeArticle.image}
+                alt={activeArticle.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Deep Cinematic Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/45 to-black/30" />
+
+              {/* Top Floating Story Badges */}
+              <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full bg-emerald-600 text-white font-mono text-[10px] font-black uppercase tracking-wider shadow-sm">
+                  {activeArticle.category_label}
+                </span>
+
+                <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-semibold flex items-center space-x-1">
+                  <Clock className="w-3 h-3 text-emerald-400" />
+                  <span>{activeArticle.published_at}</span>
+                </span>
+              </div>
+
+              {/* Bottom Headline & Tag Overlay on Image */}
+              <div className="absolute bottom-3 left-4 right-4 space-y-1.5">
+                <div className="flex items-center space-x-2">
+                  <span className="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-emerald-300 font-mono text-[9px] font-bold">
+                    {activeArticle.tag}
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-300">
+                    Source: {activeArticle.source}
+                  </span>
+                </div>
+
+                <h3 className="text-base sm:text-xl font-black text-white leading-snug drop-shadow-md">
+                  {activeArticle.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Big Regulatory Intelligence Callout Banner */}
+            <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center space-x-4 shadow-xs">
+              <div className="px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-mono font-black text-lg sm:text-xl shadow-md flex-shrink-0">
                 {activeArticle.stat_number}
               </div>
-              <div>
-                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                  Regulatory Intelligence
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-black text-emerald-800 uppercase tracking-wider block">
+                  Key Regulatory Statistic:
                 </span>
-                <span className="text-xs font-semibold text-slate-800 block">
+                <span className="text-xs sm:text-sm font-bold text-slate-800 block leading-tight mt-0.5">
                   {activeArticle.stat_label}
                 </span>
               </div>
             </div>
 
-            {/* Article Sections */}
-            <div className="space-y-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-                <span className="font-extrabold text-slate-900 flex items-center space-x-1.5 text-xs text-emerald-800">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                  <span>Verified Regulatory Summary</span>
+            {/* Story Investigation Narrative */}
+            <div className="space-y-3">
+              <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                <span className="font-extrabold text-slate-900 flex items-center space-x-2 text-xs text-emerald-800">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>Verified Regulatory Investigation</span>
                 </span>
-                <p className="text-slate-600 text-xs leading-normal">
+                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed font-medium">
                   {activeArticle.summary}
                 </p>
               </div>
 
-              {/* Actionable Supermarket Rule */}
-              <div className="p-4 rounded-2xl bg-emerald-500 text-white space-y-1 shadow-md shadow-emerald-600/30">
-                <span className="font-black text-white flex items-center space-x-1.5 text-xs uppercase tracking-wider">
-                  <CheckCircle2 className="w-4 h-4 text-white flex-shrink-0" />
-                  <span>Consumer Food Safety Directive</span>
-                </span>
-                <p className="text-white/90 text-xs leading-normal font-medium">
+              {/* Actionable Consumer Food Safety Directive */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white space-y-1.5 shadow-md shadow-emerald-700/20">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-200 flex-shrink-0" />
+                  <span className="font-black text-xs uppercase tracking-wider text-emerald-100">
+                    What Consumers Should Check on the Label:
+                  </span>
+                </div>
+                <p className="text-white text-xs sm:text-sm leading-relaxed font-semibold pl-6">
                   {activeArticle.key_takeaway}
                 </p>
               </div>
