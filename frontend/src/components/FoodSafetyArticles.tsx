@@ -265,6 +265,8 @@ export const FoodSafetyArticles: React.FC = () => {
                 <img
                   src={currentArticle.image}
                   alt={currentArticle.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
@@ -401,6 +403,8 @@ export const FoodSafetyArticles: React.FC = () => {
               <img
                 src={activeArticle.image}
                 alt={activeArticle.title}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
               {/* Deep Cinematic Gradient Overlay */}

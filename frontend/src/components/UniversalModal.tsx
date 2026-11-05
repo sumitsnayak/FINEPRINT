@@ -80,19 +80,14 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] bg-slate-950/75 backdrop-blur-xs sm:backdrop-blur-sm flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-150 transform-gpu will-change-[opacity]"
       onClick={handleClose}
       onWheel={(e) => e.stopPropagation()}
-      onTouchMove={(e) => {
-        if (e.target === e.currentTarget) {
-          e.preventDefault();
-        }
-      }}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className={`w-full ${maxWidth} max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[32px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10`}
+        className={`w-full ${maxWidth} max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[32px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150 relative z-10 transform-gpu will-change-transform`}
         onClick={(e) => e.stopPropagation()}
         style={{ overscrollBehavior: 'contain' }}
       >

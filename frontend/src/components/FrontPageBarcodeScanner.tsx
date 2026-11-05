@@ -22,7 +22,7 @@ interface FrontPageBarcodeScannerProps {
 export const FrontPageBarcodeScanner: React.FC<FrontPageBarcodeScannerProps> = ({
   onScanResult,
 }) => {
-  const [activeMode, setActiveMode] = useState<'camera' | 'barcode' | 'upload'>('camera');
+  const [activeMode, setActiveMode] = useState<'camera' | 'barcode' | 'upload'>('barcode');
   const [barcodeInput, setBarcodeInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);

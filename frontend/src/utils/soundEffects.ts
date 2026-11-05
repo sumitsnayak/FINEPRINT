@@ -4,6 +4,7 @@
 class SoundEngine {
   private ctx: AudioContext | null = null;
   public enabled: boolean = true;
+  private lastClickTime: number = 0;
 
   private initCtx() {
     if (!this.ctx && typeof window !== 'undefined') {
@@ -114,6 +115,10 @@ class SoundEngine {
   // Soft Click Tone for UI Buttons
   public playClick() {
     if (!this.enabled) return;
+    const nowMs = Date.now();
+    if (nowMs - this.lastClickTime < 45) return;
+    this.lastClickTime = nowMs;
+
     this.initCtx();
     if (!this.ctx) return;
     this.vibrate(20);

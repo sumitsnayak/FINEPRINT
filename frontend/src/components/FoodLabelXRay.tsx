@@ -527,7 +527,9 @@ export const FoodLabelXRay: React.FC<FoodLabelXRayProps> = ({ onScanClick }) => 
                   <img
                     src={currentProduct.image}
                     alt={currentProduct.name}
-                    className={`w-full h-full object-cover transition-all duration-500 ${
+                    loading="lazy"
+                    decoding="async"
+                    className={`w-full h-full object-cover transition-all duration-300 ${
                       viewMode === 'xray' ? 'filter contrast-125 saturate-150' : 'filter brightness-105'
                     }`}
                   />
