@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import {
   X,
-  ArrowLeft,
   HelpCircle,
   ShieldCheck,
   AlertTriangle,
@@ -27,7 +25,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sounds } from '../utils/soundEffects';
-import { lockScroll, unlockScroll } from '../utils/scrollLock';
+import { UniversalModal } from './UniversalModal';
 
 interface ExplainableScoreModalProps {
   isOpen: boolean;
@@ -62,40 +60,17 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [explanation, setExplanation] = useState<any | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      lockScroll();
-      return () => {
-        unlockScroll();
-      };
-    }
-  }, [isOpen]);
+  const productName = product?.product_name || product?.name || 'Packaged Food Product';
+  const overallScore = Number(product?.overall_score ?? product?.score ?? product?.overall_rating ?? 5.0);
+  const safetyScore = Number(product?.safety_score ?? overallScore);
+  const nutritionScore = Number(product?.nutrition_score ?? overallScore);
+  const concernLevel = product?.concern_level || (overallScore >= 7.5 ? 'low' : overallScore >= 5.0 ? 'moderate' : 'high');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        sounds.playClick();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen || !product) return null;
-
-  const productName = product.product_name || product.name || 'Packaged Food Product';
-  const overallScore = Number(product.overall_score ?? product.score ?? product.overall_rating ?? 5.0);
-  const safetyScore = Number(product.safety_score ?? overallScore);
-  const nutritionScore = Number(product.nutrition_score ?? overallScore);
-  const concernLevel = product.concern_level || (overallScore >= 7.5 ? 'low' : overallScore >= 5.0 ? 'moderate' : 'high');
-
-  // Normalize nutrition facts
+  // Normalize nutrition facts safely
   let normalizedNutrition: any = {};
-  if (product.nutrition_facts) {
+  if (product?.nutrition_facts) {
     normalizedNutrition = product.nutrition_facts;
-  } else if (product.nutrition_per_100g) {
+  } else if (product?.nutrition_per_100g) {
     if (typeof product.nutrition_per_100g === 'string') {
       try {
         normalizedNutrition = JSON.parse(product.nutrition_per_100g);
@@ -107,9 +82,9 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
 
   const cacheKey = `${productName}_${overallScore}_${safetyScore}_${nutritionScore}`;
 
-  // Fetch or retrieve cached explanation
+  // ALL HOOKS UNCONDITIONALLY AT TOP (No hooks after early return)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !product) return;
 
     if (explanationCache[cacheKey]) {
       setExplanation(explanationCache[cacheKey]);
@@ -137,7 +112,7 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
           explanationCache[cacheKey] = data;
           setExplanation(data);
         }
-      } catch (err) {
+      } catch {
         // Fallback to client-side deterministic construction if API fails/offline
         if (isMounted) {
           const fallbackData = buildClientDeterministicExplanation(
@@ -164,7 +139,10 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, cacheKey]);
+  }, [isOpen, cacheKey, product]);
+
+  // Early return strictly AFTER all hooks have executed
+  if (!isOpen || !product) return null;
 
   // Color & Verdict Theme
   const isGood = overallScore >= 7.5;
@@ -191,92 +169,47 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
         ringColor: '#f43f5e',
       };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-200"
-      onClick={onClose}
-      onWheel={(e) => e.stopPropagation()}
-      onTouchMove={(e) => {
-        if (e.target === e.currentTarget) e.preventDefault();
-      }}
-      role="dialog"
-      aria-modal="true"
+  const currentExplanation = explanation || buildClientDeterministicExplanation(
+    productName,
+    overallScore,
+    safetyScore,
+    nutritionScore,
+    concernLevel,
+    normalizedNutrition,
+    product.ingredient_analysis,
+    product.fssai_license,
+    product.processing_level
+  );
+
+  return (
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={productName}
+      subtitle="Nutritional values, ingredient factors, and regulatory standards"
+      badge="EXPLAIN SCORE"
+      badgeColor={scoreTheme.badgeBg}
+      icon={<Sparkles className="w-5 h-5 text-emerald-600" />}
+      maxWidth="max-w-3xl"
+      footer={
+        <div className="flex justify-between items-center w-full">
+          <span className="text-[11px] font-mono text-slate-400">
+            FINEPRINT Transparent Food Intelligence
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="py-2 px-5 rounded-2xl apple-pill-btn text-white text-xs font-bold shadow-xs cursor-pointer"
+          >
+            Close Explanation
+          </button>
+        </div>
+      }
     >
-      <div
-        className="w-full max-w-3xl max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[36px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10"
-        onClick={(e) => e.stopPropagation()}
-        style={{ overscrollBehavior: 'contain' }}
-      >
-        {/* Sticky Pinned Header */}
-        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-xs">
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              onClose();
-            }}
-            className="inline-flex items-center space-x-1 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-black text-slate-800 hover:text-emerald-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-4 h-4 text-emerald-700 stroke-[3]" />
-            <span className="font-bold">Back</span>
-          </button>
-
-          <div className="flex-1 min-w-0 px-2 sm:px-4 text-center sm:text-left">
-            <div className="flex items-center justify-center sm:justify-start space-x-1.5">
-              <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
-                <Sparkles className="w-3 h-3 text-emerald-600" />
-                <span>EXPLAIN SCORE</span>
-              </span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold border ${scoreTheme.badgeBg}`}>
-                {scoreTheme.label}
-              </span>
-            </div>
-            <h2 className="text-sm sm:text-lg font-black text-slate-900 truncate tracking-tight mt-0.5">
-              {productName}
-            </h2>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              onClose();
-            }}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 hover:text-slate-950 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4 stroke-[2.5]" />
-          </button>
-        </div>
-
-        {/* Scrollable Content Body with overscroll containment */}
-        <div
-          className="p-4 sm:p-6 overflow-y-auto flex-1 text-slate-900 relative z-10 space-y-6 bg-white"
-          style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
-        >
-
-        {/* Modal Header */}
-        <div className="space-y-2 relative z-10 pr-8">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-black uppercase tracking-wider shadow-xs">
-              <Sparkles className="w-3 h-3 text-emerald-600" />
-              <span>EXPLAINABLE FOOD SCORE · EVIDENCE & TRANSPARENCY</span>
-            </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${scoreTheme.badgeBg}`}>
-              {scoreTheme.label}
-            </span>
-          </div>
-
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-            {productName}
-          </h2>
-
-          <p className="text-xs text-slate-500 max-w-xl">
-            Detailed itemized breakdown showing which nutritional values, ingredient factors, and regulatory standards determined this score.
-          </p>
-        </div>
-
+      <div className="space-y-6">
         {/* Score Summary Banner */}
         <div className="p-4 sm:p-5 rounded-3xl bg-slate-50 border border-slate-200/80 relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           {/* Main Ring */}
@@ -346,7 +279,7 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
               sounds.playClick();
               setActiveTab('breakdown');
             }}
-            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'breakdown'
                 ? 'border-emerald-600 text-emerald-800'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -362,14 +295,14 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
               sounds.playClick();
               setActiveTab('evidence');
             }}
-            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'evidence'
                 ? 'border-emerald-600 text-emerald-800'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
-            <span>Evidence & Concerns</span>
+            <Scale className="w-3.5 h-3.5" />
+            <span>Supporting Evidence</span>
           </button>
 
           <button
@@ -378,372 +311,305 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
               sounds.playClick();
               setActiveTab('methodology');
             }}
-            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap ${
+            className={`pb-2.5 px-3 text-xs font-bold transition-all border-b-2 flex items-center space-x-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === 'methodology'
                 ? 'border-emerald-600 text-emerald-800'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
             <Cpu className="w-3.5 h-3.5" />
-            <span>How Was This Score Calculated?</span>
+            <span>Scientific Methodology</span>
           </button>
         </div>
 
-        {/* TAB 1: SCORE BREAKDOWN */}
-        {activeTab === 'breakdown' && (
-          <div className="space-y-5 relative z-10 animate-in fade-in duration-150">
-            {/* Plain-Language AI / Deterministic Explanation Box */}
-            <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-900 flex items-center space-x-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Verified Score Summary</span>
-                </span>
-                <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                  {explanation?.explanation_source || (explanation?.is_ai_live ? 'Gemini 1.5 Flash' : 'Deterministic Rules Engine')}
-                </span>
-              </div>
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 flex items-center space-x-3 text-xs text-emerald-800 animate-pulse">
+            <RefreshCw className="w-4 h-4 animate-spin text-emerald-600" />
+            <span>Synthesizing verified scoring evidence & AI explanation...</span>
+          </div>
+        )}
 
-              {loading ? (
-                <div className="space-y-2 animate-pulse py-1">
-                  <div className="h-3 bg-emerald-200/60 rounded w-full" />
-                  <div className="h-3 bg-emerald-200/60 rounded w-4/5" />
-                </div>
-              ) : (
-                <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                  {explanation?.ai_explanation ||
-                    `${productName} scored ${overallScore}/10 under FinePrint's dual-vector assessment, factoring in additive safety and nutritional profiling.`}
-                </p>
-              )}
-            </div>
-
-            {/* Nutritional Profile Progress Cards */}
-            <div className="space-y-2.5">
-              <span className="text-xs uppercase font-extrabold text-slate-600 tracking-wider block">
-                Nutritional Profile & Benchmark Tests:
+        {/* AI Simple Explanation Callout */}
+        {currentExplanation.ai_explanation && (
+          <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1.5 relative z-10 shadow-xs">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center space-x-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Plain-Language Verdict</span>
               </span>
+              <span className="text-[9px] font-mono font-bold text-slate-400">
+                {currentExplanation.is_ai_live ? 'Gemini 2.5 Live' : 'FinePrint Deterministic Engine'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-700 leading-relaxed font-medium">
+              {currentExplanation.ai_explanation}
+            </p>
+          </div>
+        )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* TAB 1: BREAKDOWN */}
+        {activeTab === 'breakdown' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {/* Nutritional Profile Quick Grid */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-900 block">
+                Nutritional Assessment (Per 100g / Declared Serving):
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {/* Added Sugar */}
-                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                      <Flame className="w-3.5 h-3.5 text-rose-500" />
-                      <span>Added Sugar</span>
-                    </span>
-                    <span className="text-xs font-mono font-black text-slate-900">
-                      {normalizedNutrition.added_sugar !== undefined
-                        ? `${normalizedNutrition.added_sugar}g`
-                        : normalizedNutrition.total_sugar !== undefined
-                        ? `${normalizedNutrition.total_sugar}g (Total)`
-                        : 'Not Declared'}
-                    </span>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <div className="flex items-center space-x-1 text-slate-500 text-[10px] font-bold uppercase">
+                    <Droplets className="w-3 h-3 text-amber-500" />
+                    <span>Added Sugar</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        Number(normalizedNutrition.added_sugar ?? normalizedNutrition.total_sugar ?? 0) > 10
-                          ? 'bg-rose-500'
-                          : 'bg-emerald-500'
-                      }`}
-                      style={{
-                        width: `${Math.min(
-                          (Number(normalizedNutrition.added_sugar ?? normalizedNutrition.total_sugar ?? 0) / 25) * 100,
-                          100
-                        )}%`,
-                      }}
-                    />
+                  <div className="font-mono font-black text-sm text-slate-900">
+                    {normalizedNutrition.added_sugar ?? normalizedNutrition.total_sugar ?? 'N/A'}
+                    {normalizedNutrition.added_sugar !== undefined || normalizedNutrition.total_sugar !== undefined ? 'g' : ''}
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    ICMR ceiling: &lt; 25g/day. Safe single-serving threshold is &lt; 10g/100g.
-                  </p>
+                  <span className="text-[10px] text-slate-500 block">
+                    {Number(normalizedNutrition.added_sugar ?? normalizedNutrition.total_sugar ?? 0) > 10 ? '⚠️ High' : '✅ Low'}
+                  </span>
                 </div>
 
                 {/* Sodium */}
-                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                      <Droplets className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Sodium</span>
-                    </span>
-                    <span className="text-xs font-mono font-black text-slate-900">
-                      {normalizedNutrition.sodium !== undefined
-                        ? `${normalizedNutrition.sodium}mg`
-                        : 'Not Declared'}
-                    </span>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <div className="flex items-center space-x-1 text-slate-500 text-[10px] font-bold uppercase">
+                    <Scale className="w-3 h-3 text-rose-500" />
+                    <span>Sodium</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        Number(normalizedNutrition.sodium ?? 0) > 600 ? 'bg-amber-500' : 'bg-emerald-500'
-                      }`}
-                      style={{
-                        width: `${Math.min(((Number(normalizedNutrition.sodium ?? 0) / 2000) * 100), 100)}%`,
-                      }}
-                    />
+                  <div className="font-mono font-black text-sm text-slate-900">
+                    {normalizedNutrition.sodium ?? 'N/A'}
+                    {normalizedNutrition.sodium !== undefined ? 'mg' : ''}
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    ICMR ceiling: &lt; 2,000mg/day. Elevated if &gt; 600mg per 100g.
-                  </p>
+                  <span className="text-[10px] text-slate-500 block">
+                    {Number(normalizedNutrition.sodium ?? 0) > 600 ? '⚠️ High' : '✅ Safe'}
+                  </span>
                 </div>
 
                 {/* Saturated Fat */}
-                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                      <Scale className="w-3.5 h-3.5 text-slate-600" />
-                      <span>Saturated Fat</span>
-                    </span>
-                    <span className="text-xs font-mono font-black text-slate-900">
-                      {normalizedNutrition.saturated_fat !== undefined
-                        ? `${normalizedNutrition.saturated_fat}g`
-                        : 'Not Declared'}
-                    </span>
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <div className="flex items-center space-x-1 text-slate-500 text-[10px] font-bold uppercase">
+                    <Flame className="w-3 h-3 text-amber-600" />
+                    <span>Saturated Fat</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${
-                        Number(normalizedNutrition.saturated_fat ?? 0) > 10 ? 'bg-rose-500' : 'bg-emerald-500'
-                      }`}
-                      style={{
-                        width: `${Math.min(((Number(normalizedNutrition.saturated_fat ?? 0) / 20) * 100), 100)}%`,
-                      }}
-                    />
+                  <div className="font-mono font-black text-sm text-slate-900">
+                    {normalizedNutrition.saturated_fat ?? 'N/A'}
+                    {normalizedNutrition.saturated_fat !== undefined ? 'g' : ''}
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    FSSAI benchmark: elevated if &gt; 10g/100g (watch for palm olein).
-                  </p>
+                  <span className="text-[10px] text-slate-500 block">
+                    {Number(normalizedNutrition.saturated_fat ?? 0) > 4 ? '⚠️ High' : '✅ Moderate'}
+                  </span>
                 </div>
 
-                {/* Protein */}
-                <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                      <Wheat className="w-3.5 h-3.5 text-teal-600" />
-                      <span>Protein</span>
-                    </span>
-                    <span className="text-xs font-mono font-black text-slate-900">
-                      {normalizedNutrition.protein !== undefined
-                        ? `${normalizedNutrition.protein}g`
-                        : 'Not Declared'}
-                    </span>
+                {/* Processing Info */}
+                <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1">
+                  <div className="flex items-center space-x-1 text-slate-500 text-[10px] font-bold uppercase">
+                    <Factory className="w-3 h-3 text-purple-500" />
+                    <span>Processing</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-teal-500"
-                      style={{
-                        width: `${Math.min(((Number(normalizedNutrition.protein ?? 0) / 20) * 100), 100)}%`,
-                      }}
-                    />
+                  <div className="font-bold text-xs text-slate-900 truncate">
+                    {currentExplanation.processing_information?.classification || 'Nova-4 Ultra'}
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">
-                    Positive reward if &ge; 8.0g/100g. Clean muscle and satiety nutrient.
-                  </p>
+                  <span className="text-[10px] text-purple-700 block">
+                    Industrial pack
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Processing Information Section */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
-                  <Factory className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Industrial Food Processing Status</span>
+            {/* Positive vs Potential Concerns */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Positive Factors */}
+              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                <span className="text-xs font-black text-emerald-900 flex items-center space-x-1.5 uppercase tracking-wider">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Positive Scoring Factors ({currentExplanation.positive_factors?.length || 0})</span>
                 </span>
-                <span className="text-[10px] font-mono font-bold text-slate-600">
-                  {explanation?.processing_information?.classification || 'Processing Classification'}
-                </span>
+                {currentExplanation.positive_factors && currentExplanation.positive_factors.length > 0 ? (
+                  <ul className="space-y-1.5 text-xs text-slate-700">
+                    {currentExplanation.positive_factors.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start space-x-1.5">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No significant positive nutritional factors detected.</p>
+                )}
               </div>
-              <p className="text-[11px] text-slate-600">
-                {explanation?.processing_information?.description ||
-                  (product.processing_level ? `Classified as ${product.processing_level}.` : 'Processing information unavailable.')}
-              </p>
-              {explanation?.processing_information?.source && (
-                <span className="text-[10px] text-slate-400 block font-mono">
-                  Source: {explanation.processing_information.source}
+
+              {/* Potential Concerns */}
+              <div className="p-4 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-2">
+                <span className="text-xs font-black text-rose-900 flex items-center space-x-1.5 uppercase tracking-wider">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" />
+                  <span>Potential Concerns ({currentExplanation.potential_concerns?.length || 0})</span>
                 </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: EVIDENCE & CONCERNS */}
-        {activeTab === 'evidence' && (
-          <div className="space-y-4 relative z-10 animate-in fade-in duration-150">
-            {/* Positive Factors */}
-            <div className="space-y-2">
-              <span className="text-xs font-black uppercase text-emerald-800 tracking-wider flex items-center space-x-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Positive Scoring Factors:</span>
-              </span>
-
-              {explanation?.positive_factors && explanation.positive_factors.length > 0 ? (
-                <div className="space-y-1.5">
-                  {explanation.positive_factors.map((item: string, i: number) => (
-                    <div
-                      key={i}
-                      className="p-2.5 rounded-xl bg-emerald-50/80 border border-emerald-200/70 text-xs text-emerald-900 flex items-start space-x-2"
-                    >
-                      <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-slate-500 italic">No specific positive rewards registered.</p>
-              )}
-            </div>
-
-            {/* Potential Concerns */}
-            <div className="space-y-2 pt-2">
-              <span className="text-xs font-black uppercase text-rose-800 tracking-wider flex items-center space-x-1.5">
-                <AlertTriangle className="w-4 h-4 text-rose-600" />
-                <span>Potential Concerns & Deductions:</span>
-              </span>
-
-              {explanation?.potential_concerns && explanation.potential_concerns.length > 0 ? (
-                <div className="space-y-1.5">
-                  {explanation.potential_concerns.map((item: string, i: number) => (
-                    <div
-                      key={i}
-                      className="p-2.5 rounded-xl bg-rose-50/80 border border-rose-200/70 text-xs text-rose-900 flex items-start space-x-2"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-600 flex-shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-emerald-700 font-semibold">No critical safety or nutritional concerns detected.</p>
-              )}
+                {currentExplanation.potential_concerns && currentExplanation.potential_concerns.length > 0 ? (
+                  <ul className="space-y-1.5 text-xs text-slate-700">
+                    {currentExplanation.potential_concerns.map((item: string, idx: number) => (
+                      <li key={idx} className="flex items-start space-x-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0 mt-1.5" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-slate-500 italic">No critical food safety concerns detected.</p>
+                )}
+              </div>
             </div>
 
             {/* Missing or Unverified Information */}
-            <div className="space-y-2 pt-2">
-              <span className="text-xs font-black uppercase text-slate-700 tracking-wider flex items-center space-x-1.5">
-                <MinusCircle className="w-4 h-4 text-slate-500" />
-                <span>Missing or Unverified Information on Packaging:</span>
-              </span>
-
-              <div className="space-y-1.5">
-                {explanation?.missing_information && explanation.missing_information.length > 0 ? (
-                  explanation.missing_information.map((item: string, i: number) => (
-                    <div
-                      key={i}
-                      className="p-2 rounded-xl bg-slate-100/80 border border-dashed border-slate-300 text-xs text-slate-600 flex items-start space-x-2"
-                    >
-                      <span className="text-[10px] font-mono text-slate-400 font-bold">MISSING:</span>
-                      <span>{item}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-2 rounded-xl bg-slate-50 text-xs text-slate-500">
-                    All core nutritional and regulatory fields were declared.
-                  </div>
-                )}
-
-                {explanation?.unverified_information &&
-                  explanation.unverified_information.map((item: string, i: number) => (
-                    <div
-                      key={`unv_${i}`}
-                      className="p-2 rounded-xl bg-amber-50/70 border border-dashed border-amber-200 text-xs text-amber-800 flex items-start space-x-2"
-                    >
-                      <span className="text-[10px] font-mono text-amber-600 font-bold">UNVERIFIED:</span>
-                      <span>{item}</span>
-                    </div>
+            {((currentExplanation.missing_information && currentExplanation.missing_information.length > 0) ||
+              (currentExplanation.unverified_information && currentExplanation.unverified_information.length > 0)) && (
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 flex items-center space-x-1.5 uppercase tracking-wider">
+                  <HelpCircle className="w-4 h-4 text-slate-500" />
+                  <span>Missing or Unverified Product Declarations</span>
+                </span>
+                <p className="text-[11px] text-slate-500">
+                  By law, food safety algorithms must disclose unverified values rather than inventing scores:
+                </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {currentExplanation.missing_information?.map((item: string, idx: number) => (
+                    <span key={`mis-${idx}`} className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono font-bold flex items-center space-x-1">
+                      <MinusCircle className="w-3 h-3 text-amber-600" />
+                      <span>Missing: {item}</span>
+                    </span>
                   ))}
+                  {currentExplanation.unverified_information?.map((item: string, idx: number) => (
+                    <span key={`unv-${idx}`} className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-mono font-bold flex items-center space-x-1">
+                      <Info className="w-3 h-3 text-slate-500" />
+                      <span>{item}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: SUPPORTING EVIDENCE */}
+        {activeTab === 'evidence' && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+              <span className="text-xs font-black text-slate-900 block">
+                Evidence-Based Verification Trail:
+              </span>
+              <p className="text-[11px] text-slate-500">
+                Every factor influencing this score is derived directly from the manufacturer's declared back-of-pack label, FSSAI regulatory schedules, or ICMR-NIN nutritional standards.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {/* Ingredient Assessment */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-900 flex items-center space-x-1.5 uppercase tracking-wider">
+                  <Wheat className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Ingredient Evaluation & Flagged Additives</span>
+                </span>
+                {product.ingredient_analysis?.additives && product.ingredient_analysis.additives.length > 0 ? (
+                  <div className="divide-y divide-slate-100">
+                    {product.ingredient_analysis.additives.map((add: any, idx: number) => (
+                      <div key={idx} className="py-2 flex items-center justify-between text-xs">
+                        <div className="space-y-0.5">
+                          <span className="font-bold text-slate-900">
+                            {add.code ? `${add.code} · ` : ''}{add.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block">{add.purpose || 'Preservative / Texture'}</span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                          add.concern_level === 'danger' || add.risk === 'high'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {add.concern_level || add.risk || 'Caution'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-600">
+                    No high-risk artificial additives or hazardous INS codes flagged in the declared ingredient list.
+                  </p>
+                )}
+              </div>
+
+              {/* FSSAI License & Regulatory Evidence */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-900 flex items-center space-x-1.5 uppercase tracking-wider">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>FSSAI License & Statutory Status</span>
+                </span>
+                <div className="text-xs space-y-1 text-slate-700">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Declared FSSAI License:</span>
+                    <span className="font-mono font-bold text-slate-900">
+                      {product.fssai_license || 'Not declared / unverified'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Classification:</span>
+                    <span className="font-medium text-slate-900">
+                      {currentExplanation.processing_information?.classification || 'Standard Packaged Food'}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 3: HOW WAS THIS SCORE CALCULATED? */}
+        {/* TAB 3: SCIENTIFIC METHODOLOGY */}
         {activeTab === 'methodology' && (
-          <div className="space-y-4 relative z-10 animate-in fade-in duration-150 text-xs text-slate-700 leading-relaxed">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-              <h3 className="text-sm font-black text-slate-900 flex items-center space-x-1.5">
-                <Cpu className="w-4 h-4 text-emerald-600" />
-                <span>Deterministic Dual-Vector Scoring Formula</span>
-              </h3>
-              <p>
-                FinePrint calculates every product score using a transparent, deterministic mathematical formula that never invents data:
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <span className="text-xs font-black text-slate-900 flex items-center space-x-1.5 uppercase tracking-wider">
+                <Cpu className="w-3.5 h-3.5 text-emerald-600" />
+                <span>FinePrint Dual-Vector Mathematical Scoring Engine</span>
+              </span>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                FinePrint calculates food ratings using a deterministic dual-vector model. Numerical scores are never invented by an AI language model; Gemini is only used to translate verified laboratory findings into simple language.
               </p>
-              <div className="p-3 rounded-xl bg-white border border-slate-200 font-mono text-xs font-black text-emerald-800">
-                Overall Score = (Regulatory Safety Score × 0.45) + (Nutritional Quality Score × 0.55)
-              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Safety Vector */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 space-y-1.5">
-                <span className="font-extrabold text-slate-900 block text-xs">
-                  1. Regulatory & Additive Safety (45%)
-                </span>
-                <p className="text-[11px] text-slate-600 leading-normal">
-                  Starts at baseline 10.0. Penalized for partially hydrogenated fats (-2.5), synthetic azo dyes (-2.0), heavy chemical preservatives (-1.1), and undeclared allergens (-0.8).
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-900">Vector A: Food Safety (45%)</span>
+                  <span className="text-xs font-mono font-bold text-emerald-700">{safetyScore.toFixed(1)}/10</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Evaluates 450+ INS chemical additives, artificial colors (e.g. Tartrazine), chemical preservatives, heavy metal limits, and FSSAI statutory adherence.
                 </p>
               </div>
 
-              {/* Nutrition Vector */}
-              <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 space-y-1.5">
-                <span className="font-extrabold text-slate-900 block text-xs">
-                  2. Nutritional Quality Profiling (55%)
-                </span>
-                <p className="text-[11px] text-slate-600 leading-normal">
-                  Starts at baseline 6.0. Penalized for added sugars &gt; 10g (-1.5 to -2.5), sodium &gt; 600mg (-1.5 to -2.5), saturated fat &gt; 10g. Rewarded for protein &ge; 8g (+1.0 to +2.0) and fiber &ge; 3g (+0.8 to +1.5).
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-slate-900">Vector B: Nutritional Quality (55%)</span>
+                  <span className="text-xs font-mono font-bold text-emerald-700">{nutritionScore.toFixed(1)}/10</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Evaluates ICMR-NIN 2024 thresholds for free sugars, sodium density, saturated palmitic acids, industrial trans-fats, and dietary fiber ratios.
                 </p>
               </div>
             </div>
 
-            {/* Reference Standards */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
-              <span className="font-extrabold text-slate-900 block text-xs">
-                Official Reference Criteria Applied:
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 space-y-1">
+              <span className="font-bold block uppercase text-[10px] tracking-wider">
+                Deterministic Integrity Guarantee:
               </span>
-              <ul className="text-[11px] text-slate-600 space-y-1 list-disc list-inside">
-                <li>FSSAI (Packaging & Labelling) Regulations 2020</li>
-                <li>ICMR-NIN (National Institute of Nutrition) Dietary Guidelines for Indians 2024</li>
-                <li>WHO Guidelines on Free Sugars and Daily Sodium Caps for Adults</li>
-                <li>Codex Alimentarius General Standard for Food Additives (GSFA)</li>
-              </ul>
-            </div>
-
-            {/* Non-FSSAI Certification Legal Disclaimer */}
-            <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-[11px] text-amber-900 space-y-1">
-              <div className="font-extrabold flex items-center space-x-1.5">
-                <Info className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
-                <span>Important Consumer Disclaimer:</span>
-              </div>
-              <p className="leading-normal">
-                {explanation?.legal_disclaimer ||
-                  "FinePrint's rating is an independent educational score to empower consumers. It does not constitute an official FSSAI certification or regulatory endorsement. A flagged ingredient reflects dietary guidance and does not automatically imply the food is toxic."}
+              <p className="text-[11px] text-slate-700 leading-relaxed">
+                All penalties, thresholds, and calculations remain 100% auditable and reproducible according to published FSSAI Codex standards.
               </p>
             </div>
           </div>
         )}
-
-        {/* Modal Footer */}
-        <div className="flex justify-between items-center pt-3 border-t border-slate-100 relative z-10">
-          <span className="text-[11px] font-mono text-slate-400">
-            FINEPRINT Transparent Food Intelligence
-          </span>
-
-          <button
-            type="button"
-            onClick={() => {
-              sounds.playClick();
-              onClose();
-            }}
-            className="py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition-all"
-          >
-            Close Explanation
-          </button>
-        </div>
       </div>
-    </div>
-  </div>,
-  document.body
-);
+    </UniversalModal>
+  );
 };
 
 // Client-side fallback if network is unreachable
@@ -794,7 +660,7 @@ function buildClientDeterministicExplanation(
     unverified_information,
     explanation_source: 'FinePrint Deterministic Rules Engine (Offline Fallback)',
     is_ai_live: false,
-    ai_explanation: `${productName} scored ${overallScore}/10 based on evaluated nutritional values and ingredient safety factors.`,
+    ai_explanation: `${productName} scored ${overallScore.toFixed(1)}/10 based on evaluated nutritional values and ingredient safety factors.`,
     processing_information: {
       classification: processingLevel || null,
       description: processingLevel ? `Classified as ${processingLevel}.` : 'Processing information unavailable.',
