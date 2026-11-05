@@ -31,9 +31,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="space-y-12 sm:space-y-16 pb-16 animate-in fade-in duration-300 relative overflow-hidden">
-      {/* Ambient macOS Glass Glow Orbs */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[650px] h-[350px] bg-gradient-to-tr from-emerald-400/20 via-teal-300/15 to-emerald-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute top-[45%] right-[-120px] w-[450px] h-[450px] bg-emerald-500/10 rounded-full blur-[90px] pointer-events-none" />
+      {/* Ambient macOS Glass Glow Orbs (GPU Hardware-Accelerated) */}
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[550px] h-[280px] bg-gradient-to-tr from-emerald-400/15 via-teal-300/10 to-emerald-600/5 rounded-full blur-3xl pointer-events-none transform-gpu" />
+      <div className="absolute top-[45%] right-[-100px] w-[350px] h-[350px] bg-emerald-500/8 rounded-full blur-3xl pointer-events-none transform-gpu" />
 
       {/* Hero Section */}
       <section className="relative pt-6 sm:pt-10 max-w-4xl mx-auto px-4 text-center">

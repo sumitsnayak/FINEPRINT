@@ -40,3 +40,4 @@ export const unlockScroll = () => {
     document.body.style.touchAction = originalBodyTouchAction;
   }
 };
+
