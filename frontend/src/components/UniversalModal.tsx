@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowLeft, X } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
@@ -31,6 +32,12 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
   children,
   footer,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Lock body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -55,7 +62,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const handleBack = () => {
     sounds.playClick();
@@ -71,50 +78,50 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-xl flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className={`w-full ${maxWidth} h-full sm:h-auto sm:max-h-[90vh] bg-white/95 backdrop-blur-2xl sm:rounded-[32px] flex flex-col shadow-2xl border border-white/80 overflow-hidden animate-in zoom-in-95 duration-200 relative`}
+        className={`w-full ${maxWidth} h-[92vh] sm:h-auto sm:max-h-[88vh] bg-white rounded-[28px] sm:rounded-[36px] flex flex-col shadow-2xl border border-slate-200/90 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Specular top sheen */}
         <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/70 to-transparent pointer-events-none z-10" />
 
-        {/* Modal Header with Back Button (Left), Title (Center), Close Button (Right) */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-slate-100 bg-white/80 backdrop-blur-md relative z-20 flex-shrink-0">
+        {/* Modal Header ALWAYS at top with sticky / fixed positioning */}
+        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-sm">
           {/* Top-Left Back Button */}
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200 border border-slate-200/80 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0"
+            className="inline-flex items-center space-x-1 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-black text-slate-800 hover:text-emerald-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
             aria-label="Go Back"
           >
-            <ArrowLeft className="w-4 h-4 text-slate-600" />
-            <span>{backText}</span>
+            <ArrowLeft className="w-4 h-4 text-emerald-700 stroke-[3]" />
+            <span className="font-bold">{backText}</span>
           </button>
 
           {/* Title & Info */}
-          <div className="flex-1 min-w-0 px-3 sm:px-5 text-center sm:text-left">
+          <div className="flex-1 min-w-0 px-2 sm:px-4 text-center sm:text-left">
             {badge && (
               <span
-                className={`inline-block px-2 py-0.2 rounded-full text-[10px] font-mono font-bold border mb-0.5 ${badgeColor}`}
+                className={`inline-block px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-black border mb-0.5 ${badgeColor}`}
               >
                 {badge}
               </span>
             )}
-            <div className="flex items-center justify-center sm:justify-start space-x-2">
+            <div className="flex items-center justify-center sm:justify-start space-x-1.5 sm:space-x-2">
               {icon}
-              <h2 className="text-base sm:text-lg font-black text-slate-900 truncate tracking-tight">
+              <h2 className="text-sm sm:text-lg font-black text-slate-900 truncate tracking-tight">
                 {title}
               </h2>
             </div>
             {subtitle && (
-              <p className="text-[11px] sm:text-xs text-slate-500 truncate hidden sm:block">
+              <p className="text-[10px] sm:text-xs text-slate-500 truncate hidden sm:block">
                 {subtitle}
               </p>
             )}
@@ -124,7 +131,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
           <button
             type="button"
             onClick={handleClose}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100/90 hover:bg-slate-200 border border-slate-200/80 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 hover:text-slate-950 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
             aria-label="Close"
           >
             <X className="w-4 h-4 stroke-[2.5]" />
@@ -143,6 +150,7 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

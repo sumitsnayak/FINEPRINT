@@ -15,15 +15,15 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav className="md:hidden fixed bottom-3 left-4 right-4 z-40 mac-dock rounded-full px-4 py-2">
       <div className="flex items-center justify-around">
-        {/* Safety Hub */}
+        {/* Home */}
         <button
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => onNavigate('landing')}
           className={`flex flex-col items-center py-1 px-2.5 transition-colors ${
-            currentTab === 'dashboard' ? 'text-emerald-700' : 'text-slate-500 hover:text-emerald-600'
+            currentTab === 'landing' ? 'text-emerald-700' : 'text-slate-500 hover:text-emerald-600'
           }`}
         >
-          <Home className={`w-5 h-5 ${currentTab === 'dashboard' ? 'stroke-[2.5px] text-emerald-700' : 'stroke-2'}`} />
-          <span className="text-[10px] font-bold tracking-tight mt-0.5">Hub</span>
+          <Home className={`w-5 h-5 ${currentTab === 'landing' ? 'stroke-[2.5px] text-emerald-700' : 'stroke-2'}`} />
+          <span className="text-[10px] font-bold tracking-tight mt-0.5">Home</span>
         </button>
 
         {/* Food Database */}
