@@ -4,6 +4,14 @@ import {
   VolumeX,
   Sparkles,
   RefreshCw,
+  X,
+  SlidersHorizontal,
+  ChevronRight,
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  Flame,
+  Droplets
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
@@ -92,6 +100,7 @@ const PRESET_ADDITIVES: AdditiveItem[] = [
 ];
 
 export const InteractiveSafetySimulator: React.FC = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedIds, setSelectedIds] = useState<string[]>(['ins621', 'palm_oil']);
   const [sodiumMg, setSodiumMg] = useState<number>(650);
   const [addedSugarG, setAddedSugarG] = useState<number>(14);
@@ -134,216 +143,348 @@ export const InteractiveSafetySimulator: React.FC = () => {
   const finalScore = Math.max(1.0, Math.min(10.0, Number(score.toFixed(1))));
 
   const getVerdict = (val: number) => {
-    if (val >= 8.0) return { label: 'Clean & Safe Food', color: 'text-emerald-700', grade: 'Grade A', bg: 'bg-emerald-50 border-emerald-300' };
-    if (val >= 6.0) return { label: 'Moderate Concern', color: 'text-amber-700', grade: 'Grade B', bg: 'bg-amber-50 border-amber-300' };
-    return { label: 'High Harm / Risk Detected', color: 'text-rose-700', grade: 'Grade D', bg: 'bg-rose-50 border-rose-300' };
+    if (val >= 8.0) return { label: 'Clean & Safe Food', color: 'text-emerald-700', grade: 'Grade A', bg: 'bg-emerald-50 border-emerald-300', dot: 'bg-emerald-500' };
+    if (val >= 6.0) return { label: 'Moderate Concern', color: 'text-amber-700', grade: 'Grade B', bg: 'bg-amber-50 border-amber-300', dot: 'bg-amber-500' };
+    return { label: 'High Harm / Risk Detected', color: 'text-rose-700', grade: 'Grade D', bg: 'bg-rose-50 border-rose-300', dot: 'bg-rose-500' };
   };
 
   const verdict = getVerdict(finalScore);
 
+  const openModal = () => {
+    sounds.playScanBeep();
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    sounds.playClick();
+    setIsModalOpen(false);
+  };
+
   return (
-    <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl relative overflow-hidden">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <div className="inline-flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full mb-1">
-            <Sparkles className="w-3 h-3 text-emerald-600" />
-            <span>Interactive Simulator</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Food Safety & Additives Laboratory
-          </h2>
-          <p className="text-xs text-slate-500">
-            Tap ingredients & adjust sodium/sugar sliders to see how food standards calculate safety ratings in real time.
-          </p>
-        </div>
+    <>
+      {/* COMPACT & ATTRACTIVE TEASER CARD ON THE MAIN PAGE (Takes ~100px instead of ~700px) */}
+      <div
+        onClick={openModal}
+        className="glass-card hover:glass-card-glow rounded-[28px] p-4 sm:p-5 border border-white/90 shadow-md group cursor-pointer transition-all duration-300 hover:-translate-y-1 relative overflow-hidden"
+      >
+        {/* Subtle Specular Glow */}
+        <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
-        {/* Audio Toggle */}
-        <button
-          onClick={toggleSound}
-          className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 hover:border-emerald-300 text-xs font-bold text-slate-700 flex items-center space-x-1.5 transition-colors shadow-sm"
-          title="Toggle scan sound effects"
-        >
-          {soundEnabled ? (
-            <>
-              <Volume2 className="w-4 h-4 text-emerald-600" />
-              <span>Audio On</span>
-            </>
-          ) : (
-            <>
-              <VolumeX className="w-4 h-4 text-slate-400" />
-              <span>Audio Muted</span>
-            </>
-          )}
-        </button>
-      </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+          {/* Left: Mini Gauge & Title */}
+          <div className="flex items-center space-x-3.5 sm:space-x-4">
+            {/* Live Interactive Mini Gauge */}
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke="#e2e8f0"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="48"
+                  fill="none"
+                  stroke={finalScore >= 8 ? '#059669' : finalScore >= 6 ? '#d97706' : '#e11d48'}
+                  strokeWidth="12"
+                  strokeDasharray={`${(finalScore / 10) * 301.59} 301.59`}
+                  strokeLinecap="round"
+                  className="transition-all duration-500 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xs sm:text-sm font-black font-mono text-slate-900 leading-none">
+                  {finalScore.toFixed(1)}
+                </span>
+                <span className="text-[8px] font-bold text-slate-400">/ 10</span>
+              </div>
+            </div>
 
-      {/* Main Dynamic Safety Gauge Dial */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50/80 p-6 rounded-2xl border border-slate-200/90">
-        {/* Animated Speedometer / Circle Gauge */}
-        <div className="flex flex-col items-center justify-center text-center space-y-2">
-          <div className="relative w-36 h-36 flex items-center justify-center">
-            {/* SVG Ring with live needle */}
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
-              <circle
-                cx="60"
-                cy="60"
-                r="48"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="10"
-              />
-              <circle
-                cx="60"
-                cy="60"
-                r="48"
-                fill="none"
-                stroke={finalScore >= 8 ? '#059669' : finalScore >= 6 ? '#d97706' : '#e11d48'}
-                strokeWidth="10"
-                strokeDasharray={`${(finalScore / 10) * 301.59} 301.59`}
-                strokeLinecap="round"
-                className="transition-all duration-500 ease-out"
-              />
-            </svg>
+            {/* Title & Micro-Pills */}
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold tracking-wide">
+                  <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                  <span>INTERACTIVE LAB</span>
+                </span>
+                <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${verdict.bg} ${verdict.color}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${verdict.dot}`} />
+                  <span>{verdict.grade} · {verdict.label}</span>
+                </span>
+              </div>
 
-            {/* Inner Center Score Display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-black font-mono text-slate-900 tracking-tight">
-                {finalScore.toFixed(1)}
-              </span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">/ 10 Rating</span>
+              <h3 className="text-sm sm:text-base font-black text-slate-900 group-hover:text-emerald-800 transition-colors">
+                Food Safety & Additives Laboratory
+              </h3>
+
+              <p className="text-[11px] text-slate-500 max-w-xl leading-relaxed hidden sm:block">
+                Simulate how INS additives, refined palm olein & sugar spikes impact safety scores in real time.
+              </p>
             </div>
           </div>
 
-          <div className={`px-3 py-1 rounded-full text-xs font-black border shadow-sm ${verdict.bg} ${verdict.color}`}>
-            {verdict.grade} · {verdict.label}
-          </div>
-        </div>
-
-        {/* Live Vector Penalty Breakdown */}
-        <div className="md:col-span-2 space-y-4 text-xs">
-          <div className="space-y-1.5">
-            <div className="flex justify-between font-bold">
-              <span className="text-slate-700">Sodium Threshold (Max 500mg):</span>
-              <span className={`font-mono ${sodiumMg > 500 ? 'text-amber-600 font-black' : 'text-emerald-600'}`}>
-                {sodiumMg} mg {sodiumMg > 500 ? '⚠️ High' : '✓ Safe'}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="50"
-              max="1500"
-              step="50"
-              value={sodiumMg}
-              onChange={(e) => {
-                setSodiumMg(Number(e.target.value));
-                if (Number(e.target.value) > 1000) sounds.playWarningBuzz();
-                else sounds.playClick();
-              }}
-              className="w-full accent-emerald-600 bg-slate-200 rounded-lg cursor-pointer"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex justify-between font-bold">
-              <span className="text-slate-700">Added Sugar (Max 10g/serving):</span>
-              <span className={`font-mono ${addedSugarG > 10 ? 'text-rose-600 font-black' : 'text-emerald-600'}`}>
-                {addedSugarG} g {addedSugarG > 10 ? '⚠️ High' : '✓ Low'}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="45"
-              step="1"
-              value={addedSugarG}
-              onChange={(e) => {
-                setAddedSugarG(Number(e.target.value));
-                if (Number(e.target.value) > 25) sounds.playWarningBuzz();
-                else sounds.playClick();
-              }}
-              className="w-full accent-emerald-600 bg-slate-200 rounded-lg cursor-pointer"
-            />
-          </div>
-
-          <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-200">
-            <span>Active Penalties: {selectedAdditives.length} additives selected</span>
+          {/* Right: CTA Pill Button to POP UP the Modal */}
+          <div className="flex items-center space-x-2 self-end sm:self-center flex-shrink-0">
             <button
-              onClick={() => {
-                setSelectedIds([]);
-                setSodiumMg(200);
-                setAddedSugarG(2);
-                sounds.playSafeChime();
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openModal();
               }}
-              className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center space-x-1"
+              className="py-2.5 px-4 rounded-2xl apple-pill-btn text-white text-xs font-black flex items-center space-x-2 shadow-md group-hover:scale-105 active:scale-95 transition-all"
             >
-              <RefreshCw className="w-3 h-3" />
-              <span>Reset to Clean Food</span>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Launch Simulator Lab ⚡</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Interactive Chemical Additives Grid */}
-      <div className="space-y-3">
-        <span className="text-xs uppercase font-bold text-slate-500 tracking-wider block">
-          Select or Deselect Additives to Test Food Safety Impact:
-        </span>
+      {/* THE INTERACTIVE POP-UP MODAL (Opens with smooth blur backdrop) */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
+          <div
+            className="w-full max-w-3xl bg-white/95 backdrop-blur-3xl rounded-[36px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Specular Top Reflection */}
+            <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {PRESET_ADDITIVES.map((item) => {
-            const isSelected = selectedIds.includes(item.id);
+            {/* Apple Circle Dismiss Button */}
+            <button
+              type="button"
+              onClick={closeModal}
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 stroke-[2.5]" />
+            </button>
 
-            return (
+            {/* Modal Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 relative z-10 pr-8">
+              <div>
+                <div className="inline-flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full mb-1">
+                  <Sparkles className="w-3 h-3 text-emerald-600" />
+                  <span>Interactive Safety Simulator Pop-Up</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Food Safety & Additives Laboratory
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Tap additives & adjust sodium/sugar sliders to test real-time regulatory safety scores.
+                </p>
+              </div>
+
+              {/* Audio Toggle */}
               <button
-                key={item.id}
                 type="button"
-                onClick={() => toggleAdditive(item.id)}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between shadow-sm ${
-                  isSelected
-                    ? item.safetyLevel === 'danger'
-                      ? 'bg-rose-50 border-rose-300 shadow-sm'
-                      : item.safetyLevel === 'caution'
-                      ? 'bg-amber-50 border-amber-300 shadow-sm'
-                      : 'bg-emerald-50 border-emerald-300 shadow-sm'
-                    : 'bg-white border-slate-200 opacity-75 hover:opacity-100 hover:border-slate-300'
-                }`}
+                onClick={toggleSound}
+                className="self-start sm:self-center px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 flex items-center space-x-1.5 transition-colors shadow-xs"
+                title="Toggle sound effects"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-mono font-bold uppercase text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
-                      {item.ins}
+                {soundEnabled ? (
+                  <>
+                    <Volume2 className="w-4 h-4 text-emerald-600" />
+                    <span>Audio On</span>
+                  </>
+                ) : (
+                  <>
+                    <VolumeX className="w-4 h-4 text-slate-400" />
+                    <span>Muted</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Dynamic Gauge & Sliders */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-slate-50/90 p-5 sm:p-6 rounded-[28px] border border-slate-200/90 relative z-10">
+              {/* Dial Gauge */}
+              <div className="flex flex-col items-center justify-center text-center space-y-2">
+                <div className="relative w-36 h-36 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke="#e2e8f0"
+                      strokeWidth="10"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="48"
+                      fill="none"
+                      stroke={finalScore >= 8 ? '#059669' : finalScore >= 6 ? '#d97706' : '#e11d48'}
+                      strokeWidth="10"
+                      strokeDasharray={`${(finalScore / 10) * 301.59} 301.59`}
+                      strokeLinecap="round"
+                      className="transition-all duration-500 ease-out"
+                    />
+                  </svg>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-black font-mono text-slate-900 tracking-tight">
+                      {finalScore.toFixed(1)}
                     </span>
-                    <span
-                      className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${
-                        item.safetyLevel === 'danger'
-                          ? 'bg-rose-100 text-rose-800'
-                          : item.safetyLevel === 'caution'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}
-                    >
-                      {item.safetyLevel}
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">/ 10 Rating</span>
+                  </div>
+                </div>
+
+                <div className={`px-3 py-1 rounded-full text-xs font-black border shadow-xs ${verdict.bg} ${verdict.color}`}>
+                  {verdict.grade} · {verdict.label}
+                </div>
+              </div>
+
+              {/* Sliders */}
+              <div className="md:col-span-2 space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-700 flex items-center space-x-1">
+                      <Droplets className="w-3.5 h-3.5 text-blue-500" />
+                      <span>Sodium Threshold (Max 500mg):</span>
+                    </span>
+                    <span className={`font-mono ${sodiumMg > 500 ? 'text-amber-600 font-black' : 'text-emerald-600'}`}>
+                      {sodiumMg} mg {sodiumMg > 500 ? '⚠️ High' : '✓ Safe'}
                     </span>
                   </div>
-
-                  <h4 className="font-bold text-xs text-slate-900 leading-snug">{item.name}</h4>
-                  <p className="text-[10px] text-slate-500 mt-1 leading-normal line-clamp-2">
-                    {item.whyUsed}
-                  </p>
+                  <input
+                    type="range"
+                    min="50"
+                    max="1500"
+                    step="50"
+                    value={sodiumMg}
+                    onChange={(e) => {
+                      setSodiumMg(Number(e.target.value));
+                      if (Number(e.target.value) > 1000) sounds.playWarningBuzz();
+                      else sounds.playClick();
+                    }}
+                    className="w-full accent-emerald-600 bg-slate-200 rounded-lg cursor-pointer"
+                  />
                 </div>
 
-                <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
-                  <span className="text-slate-500 font-medium">{item.category}</span>
-                  <span className={isSelected ? 'text-rose-600 font-bold' : 'text-slate-400'}>
-                    {isSelected ? `-${item.penalty} pts` : 'Inactive'}
-                  </span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-700 flex items-center space-x-1">
+                      <Flame className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Added Sugar (Max 10g/serving):</span>
+                    </span>
+                    <span className={`font-mono ${addedSugarG > 10 ? 'text-rose-600 font-black' : 'text-emerald-600'}`}>
+                      {addedSugarG} g {addedSugarG > 10 ? '⚠️ High' : '✓ Low'}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="45"
+                    step="1"
+                    value={addedSugarG}
+                    onChange={(e) => {
+                      setAddedSugarG(Number(e.target.value));
+                      if (Number(e.target.value) > 25) sounds.playWarningBuzz();
+                      else sounds.playClick();
+                    }}
+                    className="w-full accent-emerald-600 bg-slate-200 rounded-lg cursor-pointer"
+                  />
                 </div>
+
+                <div className="pt-2 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-200">
+                  <span>Active Penalties: {selectedAdditives.length} additives selected</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedIds([]);
+                      setSodiumMg(200);
+                      setAddedSugarG(2);
+                      sounds.playSafeChime();
+                    }}
+                    className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center space-x-1"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Reset to Clean Food</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Chemical Additives Grid */}
+            <div className="space-y-2.5 relative z-10">
+              <span className="text-xs uppercase font-extrabold text-slate-600 tracking-wider block">
+                Tap Additives to Toggle Deductions:
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                {PRESET_ADDITIVES.map((item) => {
+                  const isSelected = selectedIds.includes(item.id);
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => toggleAdditive(item.id)}
+                      className={`p-3 rounded-2xl border text-left transition-all flex flex-col justify-between shadow-xs ${
+                        isSelected
+                          ? item.safetyLevel === 'danger'
+                            ? 'bg-rose-50/90 border-rose-300 ring-2 ring-rose-400/30 shadow-sm'
+                            : item.safetyLevel === 'caution'
+                            ? 'bg-amber-50/90 border-amber-300 ring-2 ring-amber-400/30 shadow-sm'
+                            : 'bg-emerald-50/90 border-emerald-300 ring-2 ring-emerald-400/30 shadow-sm'
+                          : 'bg-white border-slate-200/80 opacity-70 hover:opacity-100 hover:border-slate-300'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-mono font-bold uppercase text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            {item.ins}
+                          </span>
+                          <span
+                            className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${
+                              item.safetyLevel === 'danger'
+                                ? 'bg-rose-100 text-rose-800'
+                                : item.safetyLevel === 'caution'
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}
+                          >
+                            {item.safetyLevel}
+                          </span>
+                        </div>
+
+                        <h4 className="font-bold text-xs text-slate-900 leading-snug">{item.name}</h4>
+                        <p className="text-[10px] text-slate-500 mt-1 leading-normal line-clamp-2">
+                          {item.whyUsed}
+                        </p>
+                      </div>
+
+                      <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 font-medium">{item.category}</span>
+                        <span className={isSelected ? 'text-rose-600 font-bold' : 'text-slate-400'}>
+                          {isSelected ? `-${item.penalty} pts` : 'Inactive'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end pt-2 border-t border-slate-100 relative z-10">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="py-2.5 px-6 rounded-2xl apple-pill-btn text-white text-xs font-bold shadow-xs hover:scale-105 active:scale-95 transition-all"
+              >
+                Apply & Close Simulator
               </button>
-            );
-          })}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };

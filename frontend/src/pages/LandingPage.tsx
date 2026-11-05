@@ -1,20 +1,11 @@
 import React, { useState } from 'react';
-import {
-  Scan,
-  ShieldCheck,
-  Scale,
-  Sparkles,
-  CheckCircle2,
-  FileSearch,
-  ChevronRight,
-  ShieldAlert,
-} from 'lucide-react';
 import { FoodLabelXRay } from '../components/FoodLabelXRay';
 import { InteractiveSafetySimulator } from '../components/InteractiveSafetySimulator';
 import { FrontPageBarcodeScanner } from '../components/FrontPageBarcodeScanner';
 import { FoodScanResultModal } from '../components/FoodScanResultModal';
 import { FoodSafetyArticles } from '../components/FoodSafetyArticles';
 import { DailyHealthAdoptionGuide } from '../components/DailyHealthAdoptionGuide';
+import { FoodEvaluationPillars } from '../components/FoodEvaluationPillars';
 import { ConsumerComplaintZone } from '../components/ConsumerComplaintZone';
 import { sounds } from '../utils/soundEffects';
 
@@ -100,84 +91,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <FoodLabelXRay onScanClick={() => onNavigate('scanner')} />
       </section>
 
-      {/* Interactive Food Safety Simulator */}
+      {/* Interactive Food Safety Simulator (Compact Bar + Pop-Up Modal) */}
       <section className="max-w-5xl mx-auto px-4 relative z-10">
         <InteractiveSafetySimulator />
       </section>
 
-      {/* Core Safety Pillars - macOS Glass Cards */}
-      <section className="max-w-6xl mx-auto px-4 relative z-10">
-        <div className="text-center max-w-lg mx-auto space-y-1 mb-8">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            How FINEPRINT Evaluates Food
-          </h2>
-          <p className="text-xs text-slate-500">
-            Laboratory standards behind every packaged food rating.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center font-bold shadow-xs">
-              <Scan className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Instant Label OCR</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Extracts and verifies ingredients, allergens, and additives from back-of-pack labels.
-            </p>
-          </div>
-
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center font-bold shadow-xs">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Dual-Vector Rating (0–10)</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              45% Regulatory Food Safety (FSSAI additive caps) + 55% Nutritional Quality.
-            </p>
-          </div>
-
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-700 flex items-center justify-center font-bold shadow-xs">
-              <FileSearch className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Chemical Additive Decoder</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Translates INS numbers (preservatives, colors, emulsifiers) into plain English.
-            </p>
-          </div>
-
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-blue-500/15 text-blue-700 flex items-center justify-center font-bold shadow-xs">
-              <Scale className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Side-by-Side Comparison</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Compare 2 products to spot fewer chemical additives and cleaner ingredients.
-            </p>
-          </div>
-
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-700 flex items-center justify-center font-bold shadow-xs">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Clean Alternatives</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Discovers verified swaps with zero artificial preservatives or trans-fats.
-            </p>
-          </div>
-
-          <div className="glass-card hover:glass-card-glow rounded-[26px] p-5 space-y-2 transition-all hover:-translate-y-1">
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/15 text-rose-700 flex items-center justify-center font-bold shadow-xs">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-bold text-slate-900">Consumer Grievance</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Log reports for expired products, missing dates, or misleading claims.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Core Safety Pillars - Compact Bento Cards with Interactive Pop-Up */}
+      <FoodEvaluationPillars onNavigate={onNavigate} />
 
       {/* Consumer Grievance Zone - How to Complaint from this App */}
       <ConsumerComplaintZone onNavigate={onNavigate} />

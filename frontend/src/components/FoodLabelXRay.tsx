@@ -21,23 +21,23 @@ export const FoodLabelXRay: React.FC<FoodLabelXRayProps> = ({ onScanClick }) => 
   };
 
   return (
-    <div className="relative bg-white border border-slate-200/90 rounded-[32px] p-6 sm:p-10 shadow-xl overflow-hidden">
+    <div className="relative glass-card border border-white/90 rounded-[28px] p-5 sm:p-7 shadow-md overflow-hidden">
       {/* Background ambient lighting */}
       <div className="absolute top-0 right-1/4 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black tracking-wide mb-2 shadow-sm">
-            <Zap className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-black uppercase tracking-wider mb-1 shadow-xs">
+            <Zap className="w-3 h-3 text-emerald-600" />
             <span>Interactive Deception Detector</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             The Packaged Food X-Ray
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            See the contrast between front-of-pack marketing claims and the actual ingredient reality.
+          <p className="text-xs text-slate-500">
+            Compare front-of-pack marketing claims with actual back-of-pack ingredient realities.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export const FoodLabelXRay: React.FC<FoodLabelXRayProps> = ({ onScanClick }) => 
       </div>
 
       {/* Main Interactive Comparison Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center pt-5">
         {/* Left Side: The Product Package Mockup */}
         <div className="lg:col-span-5 flex flex-col items-center">
           <div
