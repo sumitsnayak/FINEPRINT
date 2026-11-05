@@ -25,3 +25,4 @@ def get_food_safety_news(
         "total": len(articles),
         "articles": articles,
     }
+

@@ -12,7 +12,10 @@ import {
   ExternalLink,
   CheckCircle2,
   Radio,
-  Globe2
+  Globe2,
+  ChevronDown,
+  ChevronUp,
+  LayoutGrid
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sounds } from '../utils/soundEffects';
@@ -42,6 +45,7 @@ export const FoodSafetyArticles: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeArticle, setActiveArticle] = useState<NewsArticle | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('Just now');
+  const [showAllNews, setShowAllNews] = useState<boolean>(false);
 
   const fetchNews = async (forceRefresh: boolean = false) => {
     if (forceRefresh) {
@@ -73,6 +77,9 @@ export const FoodSafetyArticles: React.FC = () => {
     selectedCategory === 'all'
       ? articles
       : articles.filter((a) => a.category === selectedCategory);
+
+  const displayedArticles = showAllNews ? filteredArticles : filteredArticles.slice(0, 4);
+  const hasMoreArticles = filteredArticles.length > 4;
 
   const openArticle = (article: NewsArticle) => {
     sounds.playClick();
@@ -205,91 +212,119 @@ export const FoodSafetyArticles: React.FC = () => {
         </div>
       ) : (
         /* Real-Time Bento Grid News Cards */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {filteredArticles.map((article) => (
-            <div
-              key={article.id}
-              onClick={() => openArticle(article)}
-              className="glass-card hover:glass-card-glow rounded-[32px] overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between border border-white/80 shadow-md"
-            >
-              {/* Visual Thumbnail & Badges */}
-              <div className="relative h-48 sm:h-52 w-full overflow-hidden">
-                <img
-                  src={article.image}
-                  alt={article.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {displayedArticles.map((article) => (
+              <div
+                key={article.id}
+                onClick={() => openArticle(article)}
+                className="glass-card hover:glass-card-glow rounded-[32px] overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between border border-white/80 shadow-md"
+              >
+                {/* Visual Thumbnail & Badges */}
+                <div className="relative h-48 sm:h-52 w-full overflow-hidden">
+                  <img
+                    src={article.image}
+                    alt={article.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
 
-                {/* Specular Top Reflection */}
-                <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
+                  {/* Specular Top Reflection */}
+                  <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/40 to-transparent pointer-events-none" />
 
-                {/* Badges on Top */}
-                <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-emerald-300 font-mono text-[10px] font-bold">
-                    {article.tag}
-                  </span>
+                  {/* Badges on Top */}
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+                    <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-emerald-300 font-mono text-[10px] font-bold">
+                      {article.tag}
+                    </span>
 
-                  <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-[10px] flex items-center space-x-1 font-semibold">
-                    <Clock className="w-3 h-3 text-emerald-400" />
-                    <span>{article.published_at}</span>
-                  </span>
+                    <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-[10px] flex items-center space-x-1 font-semibold">
+                      <Clock className="w-3 h-3 text-emerald-400" />
+                      <span>{article.published_at}</span>
+                    </span>
+                  </div>
+
+                  {/* Live Source & Stat Badge on Image Bottom */}
+                  <div className="absolute bottom-3 left-4 right-4">
+                    <div className="px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-lg">
+                      <div className="min-w-0 pr-2">
+                        <span className="font-mono font-black text-xs text-emerald-700 block leading-tight truncate">
+                          {article.source}
+                        </span>
+                        <span className="text-[10px] text-slate-600 block truncate font-medium mt-0.5">
+                          {article.stat_label}
+                        </span>
+                      </div>
+                      <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                        <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Live Source & Stat Badge on Image Bottom */}
-                <div className="absolute bottom-3 left-4 right-4">
-                  <div className="px-3.5 py-2 rounded-2xl bg-white/92 backdrop-blur-md border border-white/50 flex items-center justify-between shadow-lg">
-                    <div className="min-w-0 pr-2">
-                      <span className="font-mono font-black text-xs text-emerald-700 block leading-tight truncate">
+                {/* Content Details */}
+                <div className="p-5 sm:p-6 space-y-2.5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
+                        {article.category_label}
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="text-[10px] font-medium text-slate-400">
                         {article.source}
                       </span>
-                      <span className="text-[10px] text-slate-600 block truncate font-medium mt-0.5">
-                        {article.stat_label}
-                      </span>
                     </div>
-                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-xs">
-                      <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
-                    </div>
+
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-emerald-800 transition-colors mt-0.5 leading-snug line-clamp-2">
+                      {article.title}
+                    </h3>
+
+                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
+                      {article.summary}
+                    </p>
+                  </div>
+
+                  {/* Key Takeaway Chip */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-slate-700 flex items-center space-x-1.5 truncate pr-2">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <span className="truncate">{article.key_takeaway}</span>
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0 group-hover:underline">
+                      Read Brief
+                    </span>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Content Details */}
-              <div className="p-5 sm:p-6 space-y-2.5 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">
-                      {article.category_label}
-                    </span>
-                    <span className="text-slate-300">·</span>
-                    <span className="text-[10px] font-medium text-slate-400">
-                      {article.source}
-                    </span>
-                  </div>
-
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-emerald-800 transition-colors mt-0.5 leading-snug line-clamp-2">
-                    {article.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">
-                    {article.summary}
-                  </p>
-                </div>
-
-                {/* Key Takeaway Chip */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-slate-700 flex items-center space-x-1.5 truncate pr-2">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                    <span className="truncate">{article.key_takeaway}</span>
-                  </span>
-                  <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0 group-hover:underline">
-                    Read Brief
-                  </span>
-                </div>
-              </div>
+          {/* Browse More / Show Less Action Button */}
+          {hasMoreArticles && (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setShowAllNews(!showAllNews);
+                }}
+                className="group py-3 px-6 rounded-full mac-secondary-btn hover:glass-card-glow text-xs sm:text-sm font-bold text-slate-800 hover:text-emerald-800 transition-all duration-300 flex items-center space-x-2.5 shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+              >
+                <LayoutGrid className="w-4 h-4 text-emerald-600 group-hover:rotate-12 transition-transform" />
+                <span>
+                  {showAllNews
+                    ? 'Show Fewer Stories (4 Headlines)'
+                    : `Browse More News (${filteredArticles.length - 4} More Stories)`}
+                </span>
+                {showAllNews ? (
+                  <ChevronUp className="w-4 h-4 text-slate-500 group-hover:-translate-y-0.5 transition-transform" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-500 group-hover:translate-y-0.5 transition-transform" />
+                )}
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {/* Full Live Article Brief Modal */}

@@ -14,6 +14,8 @@ import { InteractiveSafetySimulator } from '../components/InteractiveSafetySimul
 import { FrontPageBarcodeScanner } from '../components/FrontPageBarcodeScanner';
 import { FoodScanResultModal } from '../components/FoodScanResultModal';
 import { FoodSafetyArticles } from '../components/FoodSafetyArticles';
+import { DailyHealthAdoptionGuide } from '../components/DailyHealthAdoptionGuide';
+import { ConsumerComplaintZone } from '../components/ConsumerComplaintZone';
 import { sounds } from '../utils/soundEffects';
 
 interface LandingPageProps {
@@ -89,6 +91,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Eye-Catching New-Gen Food Safety Editorial Section */}
       <FoodSafetyArticles />
+
+      {/* Daily Health & Nutrition Requirements Intake Adoption Guide */}
+      <DailyHealthAdoptionGuide />
 
       {/* Interactive Food Label X-Ray */}
       <section className="max-w-5xl mx-auto px-4 relative z-10">
@@ -173,6 +178,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
         </div>
       </section>
+
+      {/* Consumer Grievance Zone - How to Complaint from this App */}
+      <ConsumerComplaintZone onNavigate={onNavigate} />
 
       {/* The Glossy Food Scan Result Popup Modal (Green / Yellow / Red) */}
       <FoodScanResultModal

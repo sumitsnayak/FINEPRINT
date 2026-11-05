@@ -288,3 +288,4 @@ def fetch_live_india_food_news(force_refresh: bool = False) -> List[Dict[str, An
 
     # Return cached or fallback if RSS fetch fails
     return _news_cache["articles"] if _news_cache["articles"] else FALLBACK_NEWS
+
