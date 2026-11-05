@@ -18,11 +18,21 @@ class SoundEngine {
     }
   }
 
-  // Trigger tactile vibration on Android & iOS devices supporting navigator.vibrate
-  public vibrate(pattern: number | number[] = 40) {
+  // Trigger subtle, gentle tactile vibration on Android & mobile devices
+  public vibrate(pattern: number | number[] = 6) {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       try {
-        navigator.vibrate(pattern);
+        if (typeof pattern === 'number') {
+          // Cap button clicks & single haptics to feather-light duration (max 12ms)
+          const gentleDuration = Math.min(pattern, 12);
+          navigator.vibrate(gentleDuration);
+        } else if (Array.isArray(pattern)) {
+          // Keep intervals while dampening vibration pulses to gentle levels (max 20ms)
+          const gentlePattern = pattern.map((duration, idx) =>
+            idx % 2 === 0 ? Math.min(duration, 20) : Math.min(duration, 40)
+          );
+          navigator.vibrate(gentlePattern);
+        }
       } catch {}
     }
   }
@@ -32,7 +42,7 @@ class SoundEngine {
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
-    this.vibrate(40);
+    this.vibrate(12);
 
     try {
       const osc = this.ctx.createOscillator();
@@ -59,7 +69,7 @@ class SoundEngine {
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
-    this.vibrate([30, 40, 50]);
+    this.vibrate([8, 25, 8]);
 
     try {
       const now = this.ctx.currentTime;
@@ -90,7 +100,7 @@ class SoundEngine {
     if (!this.enabled) return;
     this.initCtx();
     if (!this.ctx) return;
-    this.vibrate([80, 50, 80]);
+    this.vibrate([15, 30, 15]);
 
     try {
       const now = this.ctx.currentTime;
@@ -121,7 +131,7 @@ class SoundEngine {
 
     this.initCtx();
     if (!this.ctx) return;
-    this.vibrate(20);
+    this.vibrate(6);
 
     try {
       const now = this.ctx.currentTime;
