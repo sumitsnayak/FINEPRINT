@@ -397,16 +397,18 @@ FSSAI Lic. No. 10012011000168`;
                     >
                       <SwitchCamera className="w-4 h-4" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={handleTurnOffCamera}
-                      className="h-10 px-3 rounded-full bg-black/75 hover:bg-rose-950/90 text-rose-300 hover:text-white backdrop-blur-md border border-rose-500/50 hover:border-rose-400 flex items-center space-x-1.5 transition-all shadow-md cursor-pointer text-xs font-bold"
-                      title="Turn off camera lens"
-                      aria-label="Turn off camera lens"
-                    >
-                      <CameraOff className="w-4 h-4 text-rose-400" />
-                      <span className="text-[11px] font-bold">Turn Off Lens</span>
-                    </button>
+                    {!hideHeader && (
+                      <button
+                        type="button"
+                        onClick={handleTurnOffCamera}
+                        className="h-10 px-3 rounded-full bg-black/75 hover:bg-rose-950/90 text-rose-300 hover:text-white backdrop-blur-md border border-rose-500/50 hover:border-rose-400 flex items-center space-x-1.5 transition-all shadow-md cursor-pointer text-xs font-bold"
+                        title="Turn off camera lens"
+                        aria-label="Turn off camera lens"
+                      >
+                        <CameraOff className="w-4 h-4 text-rose-400" />
+                        <span className="text-[11px] font-bold">Turn Off Lens</span>
+                      </button>
+                    )}
                   </div>
 
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center">
@@ -483,17 +485,19 @@ FSSAI Lic. No. 10012011000168`;
                 Point camera at packaging 13-digit EAN barcode
               </div>
 
-              {/* Quick Lens Off / Close Button */}
-              <button
-                type="button"
-                onClick={handleTurnOffCamera}
-                className="absolute top-3 right-3 z-30 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-rose-950/90 text-rose-300 hover:text-white border border-rose-500/50 hover:border-rose-400 backdrop-blur-md shadow-lg transition-all hover:scale-105 active:scale-95 text-xs font-bold cursor-pointer group"
-                title="Turn off camera lens"
-                aria-label="Turn off camera lens"
-              >
-                <CameraOff className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-200" />
-                <span className="text-[11px] font-bold">Turn Off Lens</span>
-              </button>
+              {/* Quick Lens Off / Close Button (Only when standalone / no external header) */}
+              {!hideHeader && (
+                <button
+                  type="button"
+                  onClick={handleTurnOffCamera}
+                  className="absolute top-3 right-3 z-30 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-black/80 hover:bg-rose-950/90 text-rose-300 hover:text-white border border-rose-500/50 hover:border-rose-400 backdrop-blur-md shadow-lg transition-all hover:scale-105 active:scale-95 text-xs font-bold cursor-pointer group"
+                  title="Turn off camera lens"
+                  aria-label="Turn off camera lens"
+                >
+                  <CameraOff className="w-3.5 h-3.5 text-rose-400 group-hover:text-rose-200" />
+                  <span className="text-[11px] font-bold">Turn Off Lens</span>
+                </button>
+              )}
             </div>
           )
         )}
