@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   ArrowLeft,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import { ExplainableScoreModal } from './ExplainableScoreModal';
 import { sounds } from '../utils/soundEffects';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 interface FoodScanResultModalProps {
   isOpen: boolean;
@@ -34,10 +36,9 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalOverflow;
+        unlockScroll();
       };
     }
   }, [isOpen]);
@@ -137,41 +138,65 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
     }
   } catch {}
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200">
-      {/* Glossy Modal Window with Specular Reflection and Dynamic Verdict Glow */}
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-200"
+      onClick={onClose}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Modal Window with Specular Reflection and Dynamic Verdict Glow */}
       <div
-        className={`w-full max-w-lg bg-white/95 backdrop-blur-3xl rounded-[36px] p-5 sm:p-7 space-y-5 border ${theme.borderColor} ${theme.glowColor} relative overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200`}
+        className={`w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[36px] flex flex-col shadow-2xl border ${theme.borderColor} ${theme.glowColor} overflow-hidden animate-in zoom-in-95 duration-200 relative z-10`}
+        onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
       >
-        {/* Specular Top-Light Gloss Highlight */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/90 via-white/30 to-transparent pointer-events-none" />
+        {/* Sticky Pinned Header */}
+        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-xs">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="inline-flex items-center space-x-1 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-black text-slate-800 hover:text-emerald-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-4 h-4 text-emerald-700 stroke-[3]" />
+            <span className="font-bold">Back</span>
+          </button>
 
-        {/* Top-Left Back Button */}
-        <button
-          type="button"
-          onClick={() => {
-            sounds.playClick();
-            onClose();
-          }}
-          className="absolute top-4 left-4 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200 border border-slate-200/60 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-          aria-label="Back"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
-          <span>Back</span>
-        </button>
+          <div className="flex-1 min-w-0 px-2 sm:px-4 text-center sm:text-left">
+            <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-black border mb-0.5 ${theme.badgeBg}`}>
+              {theme.label}
+            </span>
+            <h2 className="text-sm sm:text-base font-black text-slate-900 truncate tracking-tight">
+              Food Safety Verdict
+            </h2>
+          </div>
 
-        {/* Apple Circle Dismiss Button */}
-        <button
-          type="button"
-          onClick={() => {
-            sounds.playClick();
-            onClose();
-          }}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-          aria-label="Close"
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 hover:text-slate-950 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+
+        {/* Scrollable Content Body with overscroll containment */}
+        <div
+          className="p-4 sm:p-6 overflow-y-auto flex-1 text-slate-900 relative z-10 space-y-5 bg-white"
+          style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
         >
-          <X className="w-4 h-4 stroke-[2.5]" />
-        </button>
 
         {/* Apple Health / Activity Style Dynamic Verdict Card */}
         <div className={`p-4 rounded-3xl ${theme.bgColor} border ${theme.borderColor} relative z-10 flex items-center space-x-4`}>
@@ -365,13 +390,15 @@ export const FoodScanResultModal: React.FC<FoodScanResultModalProps> = ({
           </button>
         </div>
       </div>
-
-      {/* Explainable Food Score Modal */}
-      <ExplainableScoreModal
-        isOpen={isExplainModalOpen}
-        onClose={() => setIsExplainModalOpen(false)}
-        product={result}
-      />
     </div>
-  );
+
+    {/* Explainable Food Score Modal */}
+    <ExplainableScoreModal
+      isOpen={isExplainModalOpen}
+      onClose={() => setIsExplainModalOpen(false)}
+      product={result}
+    />
+  </div>,
+  document.body
+);
 };

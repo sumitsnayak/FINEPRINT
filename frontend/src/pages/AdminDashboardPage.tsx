@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import {
   ShieldAlert,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft,
+  X
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -31,6 +35,15 @@ export const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     fetchAdminData();
   }, []);
+
+  useEffect(() => {
+    if (selectedComplaint) {
+      lockScroll();
+      return () => {
+        unlockScroll();
+      };
+    }
+  }, [selectedComplaint]);
 
   const handleUpdateStatus = async () => {
     if (!selectedComplaint) return;
@@ -173,23 +186,49 @@ export const AdminDashboardPage: React.FC = () => {
       </div>
 
       {/* Review Modal */}
-      {selectedComplaint && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-200 animate-in fade-in text-slate-900">
+      {selectedComplaint && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 select-text animate-in fade-in duration-200"
+          onClick={() => setSelectedComplaint(null)}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="bg-white rounded-[28px] max-w-xl w-full max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto p-5 sm:p-7 space-y-5 shadow-2xl border border-slate-200 animate-in fade-in text-slate-900 relative z-10"
+            onClick={(e) => e.stopPropagation()}
+            style={{ overscrollBehavior: 'contain' }}
+          >
             <div className="flex justify-between items-start border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400">
-                  Reviewing Report
-                </span>
-                <h3 className="text-xl font-black font-mono text-emerald-700">
-                  {selectedComplaint.reference_number}
-                </h3>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedComplaint(null)}
+                  className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-xs font-bold text-slate-700 hover:text-emerald-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 shadow-xs cursor-pointer mr-1"
+                  aria-label="Back"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 text-emerald-700 stroke-[3]" />
+                  <span>Back</span>
+                </button>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400">
+                    Reviewing Report
+                  </span>
+                  <h3 className="text-base sm:text-xl font-black font-mono text-emerald-700">
+                    {selectedComplaint.reference_number}
+                  </h3>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedComplaint(null)}
-                className="text-slate-400 hover:text-slate-700 text-base font-bold"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shadow-xs cursor-pointer"
+                aria-label="Close"
               >
-                ✕
+                <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
 
@@ -274,7 +313,8 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

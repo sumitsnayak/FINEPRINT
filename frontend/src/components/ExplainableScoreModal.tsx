@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   ArrowLeft,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { sounds } from '../utils/soundEffects';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 interface ExplainableScoreModalProps {
   isOpen: boolean;
@@ -62,10 +64,9 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalOverflow;
+        unlockScroll();
       };
     }
   }, [isOpen]);
@@ -190,44 +191,70 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
         ringColor: '#f43f5e',
       };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/65 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-200"
       onClick={onClose}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
+      role="dialog"
+      aria-modal="true"
     >
       <div
-        className="w-full max-w-3xl bg-white/95 backdrop-blur-3xl rounded-[36px] p-6 sm:p-8 space-y-6 border border-white/80 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-3xl max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[36px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10"
         onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
       >
-        {/* Specular Top Reflection */}
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/90 to-transparent pointer-events-none" />
+        {/* Sticky Pinned Header */}
+        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-xs">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="inline-flex items-center space-x-1 px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-black text-slate-800 hover:text-emerald-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
+            aria-label="Back"
+          >
+            <ArrowLeft className="w-4 h-4 text-emerald-700 stroke-[3]" />
+            <span className="font-bold">Back</span>
+          </button>
 
-        {/* Top-Left Back Button */}
-        <button
-          type="button"
-          onClick={() => {
-            sounds.playClick();
-            onClose();
-          }}
-          className="absolute top-4 left-4 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100/90 hover:bg-slate-200 border border-slate-200/60 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-          aria-label="Back"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
-          <span>Back</span>
-        </button>
+          <div className="flex-1 min-w-0 px-2 sm:px-4 text-center sm:text-left">
+            <div className="flex items-center justify-center sm:justify-start space-x-1.5">
+              <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 text-emerald-600" />
+                <span>EXPLAIN SCORE</span>
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold border ${scoreTheme.badgeBg}`}>
+                {scoreTheme.label}
+              </span>
+            </div>
+            <h2 className="text-sm sm:text-lg font-black text-slate-900 truncate tracking-tight mt-0.5">
+              {productName}
+            </h2>
+          </div>
 
-        {/* Apple Circle Dismiss Button */}
-        <button
-          type="button"
-          onClick={() => {
-            sounds.playClick();
-            onClose();
-          }}
-          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100/90 hover:bg-slate-200/90 border border-slate-200/60 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all hover:scale-105 active:scale-95 z-20 shadow-xs"
-          aria-label="Close"
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              onClose();
+            }}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 hover:text-slate-950 transition-all hover:scale-105 active:scale-95 shadow-xs flex-shrink-0 cursor-pointer"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
+
+        {/* Scrollable Content Body with overscroll containment */}
+        <div
+          className="p-4 sm:p-6 overflow-y-auto flex-1 text-slate-900 relative z-10 space-y-6 bg-white"
+          style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
         >
-          <X className="w-4 h-4 stroke-[2.5]" />
-        </button>
 
         {/* Modal Header */}
         <div className="space-y-2 relative z-10 pr-8">
@@ -714,7 +741,9 @@ export const ExplainableScoreModal: React.FC<ExplainableScoreModalProps> = ({
         </div>
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 };
 
 // Client-side fallback if network is unreachable

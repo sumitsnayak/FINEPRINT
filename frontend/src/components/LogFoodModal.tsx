@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   ArrowLeft,
@@ -11,6 +12,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 interface LogFoodModalProps {
   isOpen: boolean;
@@ -25,10 +27,9 @@ export const LogFoodModal: React.FC<LogFoodModalProps> = ({
 }) => {
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalOverflow;
+        unlockScroll();
       };
     }
   }, [isOpen]);
@@ -47,20 +48,33 @@ export const LogFoodModal: React.FC<LogFoodModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4 animate-in fade-in duration-200">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4 select-text animate-in fade-in duration-200"
+      onClick={onClose}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
+      role="dialog"
+      aria-modal="true"
+    >
       {/* Floating Close Button */}
       <button
         type="button"
         onClick={onClose}
-        className="w-10 h-10 rounded-full bg-white hover:bg-slate-100 text-slate-800 shadow-xl border border-slate-200 flex items-center justify-center transition-all hover:scale-110 mb-3 z-10 active:scale-95"
+        className="w-10 h-10 rounded-full bg-white hover:bg-slate-100 text-slate-800 shadow-xl border border-slate-200 flex items-center justify-center transition-all hover:scale-110 mb-3 z-10 active:scale-95 cursor-pointer"
         aria-label="Close"
       >
         <X className="w-5 h-5 stroke-[2.5]" />
       </button>
 
       {/* Main Elevated White Sheet */}
-      <div className="w-full sm:max-w-md bg-white text-slate-900 rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 relative animate-in slide-in-from-bottom duration-300">
+      <div
+        className="w-full sm:max-w-md max-h-[92dvh] sm:max-h-[88vh] bg-white text-slate-900 rounded-t-[36px] sm:rounded-[36px] p-6 sm:p-7 space-y-4 shadow-2xl border border-slate-200 relative animate-in slide-in-from-bottom duration-300 overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         {/* Top Header bar with Back button */}
         <div className="flex items-center justify-between pb-1">
           <button
@@ -195,6 +209,7 @@ export const LogFoodModal: React.FC<LogFoodModalProps> = ({
           <span>Launch Scanner</span>
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

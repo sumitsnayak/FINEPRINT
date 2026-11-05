@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getPlatform, PlatformType } from '../utils/deviceDetect';
 import { Download, Smartphone, Monitor, Apple, Check, X } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export const PlatformInstallBanner: React.FC = () => {
   const [platformInfo, setPlatformInfo] = useState(getPlatform());
@@ -44,6 +46,15 @@ export const PlatformInstallBanner: React.FC = () => {
       setShowModal(true);
     }
   };
+
+  useEffect(() => {
+    if (showModal) {
+      lockScroll();
+      return () => {
+        unlockScroll();
+      };
+    }
+  }, [showModal]);
 
   if (platformInfo.isPWA || installed || dismissed) {
     return null;
@@ -99,9 +110,22 @@ export const PlatformInstallBanner: React.FC = () => {
       </aside>
 
       {/* Cross-Platform Guidance Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 text-slate-900">
+      {showModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200 select-text"
+          onClick={() => setShowModal(false)}
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => {
+            if (e.target === e.currentTarget) e.preventDefault();
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-5 text-slate-900 relative z-10 max-h-[92dvh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+            style={{ overscrollBehavior: 'contain' }}
+          >
             <div className="flex justify-between items-start">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-sm">
@@ -114,7 +138,7 @@ export const PlatformInstallBanner: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700"
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -145,12 +169,13 @@ export const PlatformInstallBanner: React.FC = () => {
 
             <button
               onClick={() => setShowModal(false)}
-              className="w-full py-3 rounded-2xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/25"
+              className="w-full py-3 rounded-2xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shadow-md shadow-emerald-600/25 cursor-pointer"
             >
               Got it, let's scan!
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

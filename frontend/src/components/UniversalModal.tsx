@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, X } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 export interface UniversalModalProps {
   isOpen: boolean;
@@ -38,13 +39,12 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
     setMounted(true);
   }, []);
 
-  // Lock body scroll when modal is open
+  // Lock body & html scroll using global reference counter
   useEffect(() => {
     if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
+      lockScroll();
       return () => {
-        document.body.style.overflow = originalOverflow;
+        unlockScroll();
       };
     }
   }, [isOpen]);
@@ -80,20 +80,27 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-xl flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-2 sm:p-4 md:p-6 select-text animate-in fade-in duration-200"
       onClick={handleClose}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+        }
+      }}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className={`w-full ${maxWidth} h-[92vh] sm:h-auto sm:max-h-[88vh] bg-white rounded-[28px] sm:rounded-[36px] flex flex-col shadow-2xl border border-slate-200/90 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10`}
+        className={`w-full ${maxWidth} max-h-[92dvh] sm:max-h-[88vh] bg-white rounded-[24px] sm:rounded-[32px] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200 relative z-10`}
         onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
       >
-        {/* Specular top sheen */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-white/70 to-transparent pointer-events-none z-10" />
+        {/* Specular top reflection line */}
+        <div className="absolute top-0 left-0 right-0 h-10 bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-10" />
 
         {/* Modal Header ALWAYS at top with sticky / fixed positioning */}
-        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-sm">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-3.5 border-b border-slate-200 bg-white sticky top-0 z-30 flex-shrink-0 shadow-xs">
           {/* Top-Left Back Button */}
           <button
             type="button"
@@ -138,14 +145,17 @@ export const UniversalModal: React.FC<UniversalModalProps> = ({
           </button>
         </div>
 
-        {/* Scrollable Modal Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto flex-1 text-slate-900 relative z-10 space-y-5">
+        {/* Scrollable Modal Content (Isolated Opaque Body with overscroll containment) */}
+        <div
+          className="p-4 sm:p-6 overflow-y-auto flex-1 text-slate-900 relative z-10 space-y-5 bg-white"
+          style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+        >
           {children}
         </div>
 
-        {/* Optional Modal Footer */}
+        {/* Optional Modal Footer (Sticky pinned at bottom) */}
         {footer && (
-          <div className="p-4 sm:px-6 border-t border-slate-100 bg-slate-50/90 backdrop-blur-md relative z-20 flex-shrink-0">
+          <div className="p-3.5 sm:px-6 border-t border-slate-200 bg-slate-50 sticky bottom-0 z-20 flex-shrink-0">
             {footer}
           </div>
         )}
